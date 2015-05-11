@@ -129,6 +129,7 @@ namespace PostfixCodeCompletion
             if (target == null) return;
             if (GetTargetIsNullable(target)) AddCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr);
             if (GetTargetIsCollection(target)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr);
+            if (GetTargetIsCollectionOrHash(target)) AddCompletionItems(TemplateType.CollectionOrHash, typeof(CollectionOrHashPostfixCompletionItem), expr);
         }
 
         static ASResult GetPostfixCompletionTarget()
@@ -162,25 +163,33 @@ namespace PostfixCodeCompletion
                     return !new List<string>(new[] { "int", "uint", "Number" }).Contains(target.Type);
                 case "haxe":
                     return true;
-                default:
-                    return false;
             }
+            return false;
         }
 
         static bool GetTargetIsCollection(MemberModel target)
         {
             string type = target.Type;
-            ContextFeatures features = ASContext.Context.Features;
+            string arrayKey = ASContext.Context.Features.arrayKey;
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
             {
                 case "as2":
                 case "as3":
-                    if (type == features.arrayKey) target.Type = string.Format("{0}.<{1}>", target.Type, features.objectKey);
-                    else if (type.Contains("@")) target.Type = string.Format("{0}>", type.Replace("@", ".<"));
-                    return type.Contains(".<");
-                default:
-                    return type == features.arrayKey;
+                    return type.Contains("Vector.<") || type == arrayKey || type.Contains(string.Format("{0}@", arrayKey));
             }
+            return type == arrayKey;
+        }
+
+        static bool GetTargetIsCollectionOrHash(MemberModel target)
+        {
+            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
+            {
+                case "as2":
+                case "as3":
+                    string type = target.Type;
+                    return type == ASContext.Context.Features.objectKey || type == "Dictionary" || GetTargetIsCollection(target);
+            }
+            return false;
         }
 
         void AddCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
@@ -288,5 +297,15 @@ namespace PostfixCodeCompletion
         }
 
         public override string Pattern { get { return TemplateUtils.PATTERN_COLLECTION; }}
+    }
+
+    class CollectionOrHashPostfixCompletionItem : PostfixCompletionItem
+    {
+        public CollectionOrHashPostfixCompletionItem(string label, string template, ASResult expr)
+            : base(label, TemplateUtils.ProcessCollectionOrHashTemplate(template, expr), expr)
+        {
+        }
+
+        public override string Pattern { get { return TemplateUtils.PATTERN_COLLECTION_OR_HASH; }}
     }
 }

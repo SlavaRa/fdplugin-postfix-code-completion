@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using ASCompletion.Completion;
-using ASCompletion.Model;
+using ASCompletion.Context;
 using PluginCore;
 using PluginCore.Helpers;
 
@@ -10,25 +10,26 @@ namespace PostfixCodeCompletion.Helpers
 {
     static class TemplateUtils
     {
-        public const string POSTFIX_GENERATORS = "PostfixGenerators";
-        public const string PATTERN_MEMBER = "$(Member)";
-        public const string PATTERN_NULLABLE = "$(Nullable)";
-        public const string PATTERN_COLLECTION = "$(Collection)";
-        public const string PATTERN_COLLECTION_KEY_TYPE = "$(CollectionKeyType)";
-        public const string PATTERN_COLLECTION_ITEM_TYPE = "$(CollectionItemType)";
+        internal const string POSTFIX_GENERATORS = "PostfixGenerators";
+        internal const string PATTERN_MEMBER = "$(Member)";
+        internal const string PATTERN_NULLABLE = "$(Nullable)";
+        internal const string PATTERN_COLLECTION = "$(Collection)";
+        internal const string PATTERN_COLLECTION_KEY_TYPE = "$(CollectionKeyType)";
+        internal const string PATTERN_COLLECTION_ITEM_TYPE = "$(CollectionItemType)";
+        internal const string PATTERN_COLLECTION_OR_HASH = "$(CollectionOrHash)";
 
-        public static string GetTemplatesDir()
+        internal static string GetTemplatesDir()
         {
             string lang = PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower();
             string path = Path.Combine(PathHelper.SnippetDir, lang);
             return Path.Combine(path, POSTFIX_GENERATORS);
         }
 
-        public static Dictionary<string, string> GetTemplates()
+        internal static Dictionary<string, string> GetTemplates()
         {
             return GetTemplates(TemplateType.Any);
         }
-        public static Dictionary<string, string> GetTemplates(TemplateType type)
+        internal static Dictionary<string, string> GetTemplates(TemplateType type)
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
             string path = GetTemplatesDir();
@@ -43,12 +44,13 @@ namespace PostfixCodeCompletion.Helpers
                 if (type == TemplateType.Member && !content.Contains(PATTERN_MEMBER)) continue;
                 if (type == TemplateType.Nullable && !content.Contains(PATTERN_NULLABLE)) continue;
                 if (type == TemplateType.Collection && !content.Contains(PATTERN_COLLECTION)) continue;
+                if (type == TemplateType.CollectionOrHash && !content.Contains(PATTERN_COLLECTION_OR_HASH)) continue;
                 result.Add(file, string.Format("{0}{1}{0}", SnippetHelper.BOUNDARY, content.Replace("\r\n", "\n")));
             }
             return result;
         }
 
-        public static string ProcessMemberTemplate(string template, ASResult expr)
+        internal static string ProcessMemberTemplate(string template, ASResult expr)
         {
             string type;
             string name;
@@ -62,6 +64,7 @@ namespace PostfixCodeCompletion.Helpers
                 type = expr.Type.QualifiedName;
                 name = expr.Type.Name;
             }
+            if (type.Contains("@")) type = type.Substring(0, type.IndexOf("@"));
             if (string.IsNullOrEmpty(name)) name = type;
             name = name.ToLower();
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
@@ -69,11 +72,33 @@ namespace PostfixCodeCompletion.Helpers
             return template;
         }
 
-        public static string ProcessCollectionTemplate(string template, ASResult expr)
+        internal static string ProcessCollectionTemplate(string template, ASResult expr)
         {
             string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
+            if (type.Contains("@")) type = string.Format("{0}>", type.Replace("@", ".<"));
+            type = Regex.Match(type, "<([^]]+)>").Groups[1].Value;
+            if (string.IsNullOrEmpty(type)) type = "*";
             template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, "int");
-            template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, Regex.Match(type, "<([^]]+)>").Groups[1].Value);
+            template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, type);
+            return template;
+        }
+
+        internal static string ProcessCollectionOrHashTemplate(string template, ASResult expr)
+        {
+            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
+            {
+                case "as2":
+                case "as3":
+                    string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
+                    string objectKey = ASContext.Context.Features.objectKey;
+                    if (type == objectKey || type == "Dictionary")
+                    {
+                        template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, type == objectKey ? "String" : objectKey);
+                        template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, "*");
+                    }
+                    else template = ProcessCollectionTemplate(template, expr);
+                    break;
+            }
             return template;
         }
     }
@@ -83,6 +108,7 @@ namespace PostfixCodeCompletion.Helpers
         Any,
         Member,
         Nullable,
-        Collection
+        Collection,
+        CollectionOrHash
     }
 }
