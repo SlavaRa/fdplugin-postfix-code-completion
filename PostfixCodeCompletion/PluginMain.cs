@@ -138,11 +138,32 @@ namespace PostfixCodeCompletion
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
             int lineNum = sci.CurrentLine;
             string line = sci.GetLine(lineNum);
-            line = line.Replace('.', ';');
-            object returnType = methodInfo.Invoke(null, new object[] { sci, ASContext.Context.CurrentClass, line, sci.PositionFromLine(lineNum) });
-            return returnType != null
-                ? (ASResult)returnType.GetType().GetField("resolve").GetValue(returnType)
-                : null;
+            int positionFromLine = sci.PositionFromLine(lineNum);
+            //{TODO slavara: refactor this
+            //TODO slavara: check comments before
+            int currentPos = sci.CurrentPos - 1;
+            if (sci.CharAt(currentPos) == '.')
+            {
+                currentPos -= positionFromLine;
+                line = line.Remove(currentPos);
+                line = line.Insert(currentPos, ";");
+            }
+            else if (ASComplete.GetExpressionType(sci, sci.CurrentPos).IsNull())
+            {
+                string wordUnderCursor = sci.GetWordFromPosition(currentPos);
+                if (!string.IsNullOrEmpty(wordUnderCursor))
+                {
+                    int wordStartPosition = sci.WordStartPosition(currentPos, true);
+                    currentPos = wordStartPosition - 1;
+                    currentPos -= positionFromLine;
+                    line = line.Remove(currentPos, wordUnderCursor.Length + 1);
+                    line = line.Insert(currentPos, ";");
+                }
+            }
+            //}
+            object returnType = methodInfo.Invoke(null, new object[] { sci, ASContext.Context.CurrentClass, line, positionFromLine });
+            ASResult expr = returnType != null ? (ASResult)returnType.GetType().GetField("resolve").GetValue(returnType) : null;
+            return expr;
         }
 
         internal static int GetLeftDotPosition(ScintillaControl sci)
