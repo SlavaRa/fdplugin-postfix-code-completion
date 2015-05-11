@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
+using ASCompletion.Completion;
+using ASCompletion.Model;
 using PluginCore;
 using PluginCore.Helpers;
 
@@ -43,6 +46,35 @@ namespace PostfixCodeCompletion.Helpers
                 result.Add(file, string.Format("{0}{1}{0}", SnippetHelper.BOUNDARY, content.Replace("\r\n", "\n")));
             }
             return result;
+        }
+
+        public static string ProcessMemberTemplate(string template, ASResult expr)
+        {
+            string type;
+            string name;
+            if (expr.Member != null)
+            {
+                type = expr.Member.Type;
+                name = expr.Member.Name;
+            }
+            else
+            {
+                type = expr.Type.QualifiedName;
+                name = expr.Type.Name;
+            }
+            if (string.IsNullOrEmpty(name)) name = type;
+            name = name.ToLower();
+            template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
+            template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", type);
+            return template;
+        }
+
+        public static string ProcessCollectionTemplate(string template, ASResult expr)
+        {
+            string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
+            template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, "int");
+            template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, Regex.Match(type, "<([^]]+)>").Groups[1].Value);
+            return template;
         }
     }
 

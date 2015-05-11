@@ -5,7 +5,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using ASCompletion.Completion;
 using ASCompletion.Context;
@@ -123,14 +122,26 @@ namespace PostfixCodeCompletion
             if (!completionList.Visible) return;
             string templates = TemplateUtils.GetTemplatesDir();
             if (!Directory.Exists(templates)) return;
-            ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            int position = GetLeftDotPosition(sci);
-            ASResult expr = ASComplete.GetExpressionType(sci, position);
-            MemberModel target = expr != null ? expr.Member : null;
+            ASResult expr = GetPostfixCompletionTarget();
+            if (expr == null || expr.IsNull()) return;
+            AddCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr);
+            MemberModel target = expr.Member ?? expr.Type;
             if (target == null) return;
-            AddCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), target);
-            if (GetTargetIsNullable(target)) AddCompletionItems(TemplateType.Nullable, typeof (NullablePostfixCompletionItem), target);
-            if (GetTargetIsCollection(target)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), target);
+            if (GetTargetIsNullable(target)) AddCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr);
+            if (GetTargetIsCollection(target)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr);
+        }
+
+        static ASResult GetPostfixCompletionTarget()
+        {
+            MethodInfo methodInfo = typeof(ASGenerator).GetMethod("GetStatementReturnType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
+            ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
+            int lineNum = sci.CurrentLine;
+            string line = sci.GetLine(lineNum);
+            line = line.Replace('.', ';');
+            object returnType = methodInfo.Invoke(null, new object[] { sci, ASContext.Context.CurrentClass, line, sci.PositionFromLine(lineNum) });
+            return returnType != null
+                ? (ASResult)returnType.GetType().GetField("resolve").GetValue(returnType)
+                : null;
         }
 
         internal static int GetLeftDotPosition(ScintillaControl sci)
@@ -172,13 +183,13 @@ namespace PostfixCodeCompletion
             }
         }
 
-        void AddCompletionItems(TemplateType templateType, Type itemType, MemberModel target)
+        void AddCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
         {
             foreach (KeyValuePair<string, string> pathToTemplate in TemplateUtils.GetTemplates(templateType))
             {
                 string fileName = Path.GetFileNameWithoutExtension(pathToTemplate.Key);
-                ConstructorInfo constructorInfo = itemType.GetConstructor(new[] {typeof(string), typeof(string), typeof(MemberModel)});
-                PostfixCompletionItem item = (PostfixCompletionItem) constructorInfo.Invoke(new object[] { fileName, pathToTemplate.Value, target });
+                ConstructorInfo constructorInfo = itemType.GetConstructor(new[] { typeof(string), typeof(string), typeof(ASResult) });
+                PostfixCompletionItem item = (PostfixCompletionItem) constructorInfo.Invoke(new object[] { fileName, pathToTemplate.Value, expr });
                 completionList.Items.Add(item);
                 #region NOTE slavara: completionList.allItems.Add(item);
                 FieldInfo member = typeof(CompletionList).GetField("allItems", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
@@ -193,18 +204,18 @@ namespace PostfixCodeCompletion
     class PostfixCompletionItem : ICompletionListItem
     {
         readonly string template;
-        readonly MemberModel target;
+        readonly ASResult expr;
 
-        public PostfixCompletionItem(string label, string template, MemberModel target)
+        public PostfixCompletionItem(string label, string template, ASResult expr)
         {
             Label = label;
             this.template = template;
-            this.target = target;
+            this.expr = expr;
         }
 
         public string Label { get; private set; }
 
-        public virtual string Pattern { get { return "$(Member)"; }}
+        public virtual string Pattern { get { return TemplateUtils.PATTERN_MEMBER; }}
 
         public string Value
         {
@@ -218,7 +229,7 @@ namespace PostfixCodeCompletion
                 int pos = sci.PositionFromLine(lineNum) + sci.GetLineIndentation(lineNum) / sci.Indent;
                 sci.SetSel(pos, sci.CurrentPos);
                 string snippet = template.Replace(Pattern, sci.SelText);
-                snippet = ASCompletion.Completion.TemplateUtils.ToDeclarationString(target, snippet);
+                snippet = TemplateUtils.ProcessMemberTemplate(snippet, expr);
                 snippet = ArgsProcessor.ProcessCodeStyleLineBreaks(snippet);
                 sci.ReplaceSel(string.Empty);
                 SnippetHelper.InsertSnippetText(sci, pos, snippet);
@@ -248,7 +259,7 @@ namespace PostfixCodeCompletion
                     line = line.Substring(0, line.LastIndexOf('.'));
                     description = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
                     description = description.Replace(Pattern, line);
-                    description = ASCompletion.Completion.TemplateUtils.ToDeclarationString(target, description);
+                    description = TemplateUtils.ProcessMemberTemplate(description, expr);
                     description = ArgsProcessor.ProcessCodeStyleLineBreaks(description);
                     description = description.Replace(SnippetHelper.ENTRYPOINT, "|");
                     description = description.Replace(SnippetHelper.EXITPOINT, "|");
@@ -262,26 +273,18 @@ namespace PostfixCodeCompletion
 
     class NullablePostfixCompletionItem : PostfixCompletionItem
     {
-        public NullablePostfixCompletionItem(string label, string template, MemberModel target) : base(label, template, target)
+        public NullablePostfixCompletionItem(string label, string template, ASResult expr) : base(label, template, expr)
         {
         }
 
-        public override string Pattern { get { return "$(Nullable)"; }}
+        public override string Pattern { get { return TemplateUtils.PATTERN_NULLABLE; }}
     }
 
     class CollectionPostfixCompletionItem : PostfixCompletionItem
     {
-        public CollectionPostfixCompletionItem(string label, string template, MemberModel target)
-            : base(label, PrepareTemplate(template, target), target)
+        public CollectionPostfixCompletionItem(string label, string template, ASResult expr)
+            : base(label, TemplateUtils.ProcessCollectionTemplate(template, expr), expr)
         {
-        }
-
-        // TODO slavara: move to TemplateUtils.PrepareColletionsTemplate(string template, MemberModel target)
-        static string PrepareTemplate(string template, MemberModel target)
-        {
-            template = template.Replace(TemplateUtils.PATTERN_COLLECTION_KEY_TYPE, "int");
-            template = template.Replace(TemplateUtils.PATTERN_COLLECTION_ITEM_TYPE, Regex.Match(target.Type, "<([^]]+)>").Groups[1].Value);
-            return template;
         }
 
         public override string Pattern { get { return TemplateUtils.PATTERN_COLLECTION; }}
