@@ -10,6 +10,9 @@ namespace PostfixCodeCompletion.Helpers
         public const string POSTFIX_GENERATORS = "PostfixGenerators";
         public const string PATTERN_MEMBER = "$(Member)";
         public const string PATTERN_NULLABLE = "$(Nullable)";
+        public const string PATTERN_COLLECTION = "$(Collection)";
+        public const string PATTERN_COLLECTION_KEY_TYPE = "$(CollectionKeyType)";
+        public const string PATTERN_COLLECTION_ITEM_TYPE = "$(CollectionItemType)";
 
         public static string GetTemplatesDir()
         {
@@ -36,6 +39,7 @@ namespace PostfixCodeCompletion.Helpers
                 }
                 if (type == TemplateType.Member && !content.Contains(PATTERN_MEMBER)) continue;
                 if (type == TemplateType.Nullable && !content.Contains(PATTERN_NULLABLE)) continue;
+                if (type == TemplateType.Collection && !content.Contains(PATTERN_COLLECTION)) continue;
                 result.Add(file, string.Format("{0}{1}{0}", SnippetHelper.BOUNDARY, content.Replace("\r\n", "\n")));
             }
             return result;
@@ -46,6 +50,7 @@ namespace PostfixCodeCompletion.Helpers
     {
         Any,
         Member,
-        Nullable
+        Nullable,
+        Collection
     }
 }

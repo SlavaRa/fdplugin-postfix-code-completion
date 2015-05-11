@@ -1,0 +1,3 @@
+if ($(Nullable) != null) $(CSLB){
+    $(EntryPoint)
+}
