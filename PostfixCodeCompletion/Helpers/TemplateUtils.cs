@@ -82,8 +82,14 @@ namespace PostfixCodeCompletion.Helpers
             if (type.Contains("@")) type = string.Format("{0}>", type.Replace("@", ".<"));
             type = Regex.Match(type, "<([^]]+)>").Groups[1].Value;
             type = GetShortType(type);
-            if (string.IsNullOrEmpty(type)) type = "*";
-            template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, "int");
+            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
+            {
+                case "as2":
+                case "as3":
+                    if (string.IsNullOrEmpty(type)) type = "*";
+                    template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, "int");
+                    break;
+            }
             template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, type);
             return template;
         }
@@ -108,11 +114,19 @@ namespace PostfixCodeCompletion.Helpers
             return template;
         }
 
-        static string GetShortType(string type)
+        internal static string GetShortType(string type)
         {
-            #region return ASGenerator.GetShortType(sci, type)
+            #region return ASGenerator.GetShortType(type)
             MethodInfo methodInfo = typeof(ASGenerator).GetMethod("GetShortType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
             return (string) methodInfo.Invoke(null, new object[] { type });
+            #endregion
+        }
+
+        internal static string CleanType(string type)
+        {
+            #region return ASGenerator.CleanType(type)
+            MethodInfo methodInfo = typeof(ASGenerator).GetMethod("CleanType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
+            return (string)methodInfo.Invoke(null, new object[] { type });
             #endregion
         }
     }
