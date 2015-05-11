@@ -5,8 +5,10 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using ASCompletion.Completion;
+using ASCompletion.Context;
 using ASCompletion.Model;
 using FlashDevelop;
 using FlashDevelop.Utilities;
@@ -128,6 +130,7 @@ namespace PostfixCodeCompletion
             if (target == null) return;
             AddCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), target);
             if (GetTargetIsNullable(target)) AddCompletionItems(TemplateType.Nullable, typeof (NullablePostfixCompletionItem), target);
+            if (GetTargetIsCollection(target)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), target);
         }
 
         internal static int GetLeftDotPosition(ScintillaControl sci)
@@ -150,6 +153,22 @@ namespace PostfixCodeCompletion
                     return true;
                 default:
                     return false;
+            }
+        }
+
+        static bool GetTargetIsCollection(MemberModel target)
+        {
+            string type = target.Type;
+            ContextFeatures features = ASContext.Context.Features;
+            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
+            {
+                case "as2":
+                case "as3":
+                    if (type == features.arrayKey) target.Type = string.Format("{0}.<{1}>", target.Type, features.objectKey);
+                    else if (type.Contains("@")) target.Type = string.Format("{0}>", type.Replace("@", ".<"));
+                    return type.Contains(".<");
+                default:
+                    return type == features.arrayKey;
             }
         }
 
@@ -248,5 +267,15 @@ namespace PostfixCodeCompletion
         }
 
         public override string Pattern { get { return "$(Nullable)"; }}
+    }
+
+    class CollectionPostfixCompletionItem : PostfixCompletionItem
+    {
+        public CollectionPostfixCompletionItem(string label, string template, MemberModel target)
+            : base(label, template.Replace(TemplateUtils.PATTERN_COLLECTION_ITEM_TYPE, Regex.Match(target.Type, "<([^]]+)>").Groups[1].Value), target)
+        {
+        }
+
+        public override string Pattern { get { return TemplateUtils.PATTERN_COLLECTION; }}
     }
 }
