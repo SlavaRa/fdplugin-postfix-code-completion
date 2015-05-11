@@ -272,8 +272,16 @@ namespace PostfixCodeCompletion
     class CollectionPostfixCompletionItem : PostfixCompletionItem
     {
         public CollectionPostfixCompletionItem(string label, string template, MemberModel target)
-            : base(label, template.Replace(TemplateUtils.PATTERN_COLLECTION_ITEM_TYPE, Regex.Match(target.Type, "<([^]]+)>").Groups[1].Value), target)
+            : base(label, PrepareTemplate(template, target), target)
         {
+        }
+
+        // TODO slavara: move to TemplateUtils.PrepareColletionsTemplate(string template, MemberModel target)
+        static string PrepareTemplate(string template, MemberModel target)
+        {
+            template = template.Replace(TemplateUtils.PATTERN_COLLECTION_KEY_TYPE, "int");
+            template = template.Replace(TemplateUtils.PATTERN_COLLECTION_ITEM_TYPE, Regex.Match(target.Type, "<([^]]+)>").Groups[1].Value);
+            return template;
         }
 
         public override string Pattern { get { return TemplateUtils.PATTERN_COLLECTION; }}

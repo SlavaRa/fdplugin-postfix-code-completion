@@ -11,6 +11,7 @@ namespace PostfixCodeCompletion.Helpers
         public const string PATTERN_MEMBER = "$(Member)";
         public const string PATTERN_NULLABLE = "$(Nullable)";
         public const string PATTERN_COLLECTION = "$(Collection)";
+        public const string PATTERN_COLLECTION_KEY_TYPE = "$(CollectionKeyType)";
         public const string PATTERN_COLLECTION_ITEM_TYPE = "$(CollectionItemType)";
 
         public static string GetTemplatesDir()
