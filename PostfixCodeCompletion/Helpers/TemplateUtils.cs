@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using ASCompletion.Completion;
 using ASCompletion.Context;
@@ -65,6 +66,7 @@ namespace PostfixCodeCompletion.Helpers
                 name = expr.Type.Name;
             }
             if (type.Contains("@")) type = type.Substring(0, type.IndexOf("@"));
+            type = GetShortType(type);
             if (string.IsNullOrEmpty(name)) name = type;
             name = name.ToLower();
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
@@ -77,6 +79,7 @@ namespace PostfixCodeCompletion.Helpers
             string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
             if (type.Contains("@")) type = string.Format("{0}>", type.Replace("@", ".<"));
             type = Regex.Match(type, "<([^]]+)>").Groups[1].Value;
+            type = GetShortType(type);
             if (string.IsNullOrEmpty(type)) type = "*";
             template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, "int");
             template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, type);
@@ -90,6 +93,7 @@ namespace PostfixCodeCompletion.Helpers
                 case "as2":
                 case "as3":
                     string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
+                    type = GetShortType(type);
                     string objectKey = ASContext.Context.Features.objectKey;
                     if (type == objectKey || type == "Dictionary")
                     {
@@ -100,6 +104,14 @@ namespace PostfixCodeCompletion.Helpers
                     break;
             }
             return template;
+        }
+
+        static string GetShortType(string type)
+        {
+            #region return ASGenerator.GetShortType(sci, type)
+            MethodInfo methodInfo = typeof(ASGenerator).GetMethod("GetShortType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
+            return (string) methodInfo.Invoke(null, new object[] { type });
+            #endregion
         }
     }
 

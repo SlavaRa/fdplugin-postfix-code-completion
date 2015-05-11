@@ -134,7 +134,6 @@ namespace PostfixCodeCompletion
 
         static ASResult GetPostfixCompletionTarget()
         {
-            MethodInfo methodInfo = typeof(ASGenerator).GetMethod("GetStatementReturnType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
             int lineNum = sci.CurrentLine;
             string line = sci.GetLine(lineNum);
@@ -161,9 +160,12 @@ namespace PostfixCodeCompletion
                 }
             }
             //}
+            #region return ASGenerator.GetStatementReturnType(sci, ASContext.Context.CurrentClass, line, positionFromLine).resolve
+            MethodInfo methodInfo = typeof(ASGenerator).GetMethod("GetStatementReturnType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
             object returnType = methodInfo.Invoke(null, new object[] { sci, ASContext.Context.CurrentClass, line, positionFromLine });
             ASResult expr = returnType != null ? (ASResult)returnType.GetType().GetField("resolve").GetValue(returnType) : null;
             return expr;
+            #endregion
         }
 
         internal static int GetLeftDotPosition(ScintillaControl sci)
@@ -221,7 +223,7 @@ namespace PostfixCodeCompletion
                 ConstructorInfo constructorInfo = itemType.GetConstructor(new[] { typeof(string), typeof(string), typeof(ASResult) });
                 PostfixCompletionItem item = (PostfixCompletionItem) constructorInfo.Invoke(new object[] { fileName, pathToTemplate.Value, expr });
                 completionList.Items.Add(item);
-                #region NOTE slavara: completionList.allItems.Add(item);
+                #region completionList.allItems.Add(item);
                 FieldInfo member = typeof(CompletionList).GetField("allItems", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
                 member.FieldType.GetMethod("Add").Invoke(member.GetValue(typeof(ICollection)), new object[] { item });
                 #endregion
