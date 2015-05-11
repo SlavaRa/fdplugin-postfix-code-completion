@@ -124,12 +124,16 @@ namespace PostfixCodeCompletion
             if (!Directory.Exists(templates)) return;
             ASResult expr = GetPostfixCompletionTarget();
             if (expr == null || expr.IsNull()) return;
+            MemberModel target;
+            if (expr.Member != null && !string.IsNullOrEmpty(expr.Member.Type)) target = expr.Member;
+            else if (expr.Type != null && !expr.Type.IsVoid()) target = expr.Type;
+            else return;
             AddCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr);
-            MemberModel target = expr.Member ?? expr.Type;
-            if (target == null) return;
             if (GetTargetIsNullable(target)) AddCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr);
             if (GetTargetIsCollection(target)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr);
             if (GetTargetIsCollectionOrHash(target)) AddCompletionItems(TemplateType.CollectionOrHash, typeof(CollectionOrHashPostfixCompletionItem), expr);
+            if (GetTargetIsBoolean(target)) AddCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr);
+            completionList.Height = (Math.Min(completionList.Items.Count, 10) + 1)*completionList.ItemHeight;
         }
 
         static ASResult GetPostfixCompletionTarget()
@@ -179,13 +183,15 @@ namespace PostfixCodeCompletion
 
         static bool GetTargetIsNullable(MemberModel target)
         {
+            string type = target.Type;
+            string booleanKey = ASContext.Context.Features.booleanKey;
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
             {
                 case "as2":
                 case "as3":
-                    return !new List<string>(new[] { "int", "uint", "Number" }).Contains(target.Type);
+                    return !new List<string>(new[] { "int", "uint", "Number", booleanKey }).Contains(type);
                 case "haxe":
-                    return true;
+                    return !new List<string>(new[] { "Int", "UInt", "Float", booleanKey }).Contains(type);;
             }
             return false;
         }
@@ -213,6 +219,11 @@ namespace PostfixCodeCompletion
                     return type == ASContext.Context.Features.objectKey || type == "Dictionary" || GetTargetIsCollection(target);
             }
             return false;
+        }
+
+        static bool GetTargetIsBoolean(MemberModel target)
+        {
+            return target.Type == ASContext.Context.Features.booleanKey;
         }
 
         void AddCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
@@ -330,5 +341,14 @@ namespace PostfixCodeCompletion
         }
 
         public override string Pattern { get { return TemplateUtils.PATTERN_COLLECTION_OR_HASH; }}
+    }
+
+    class BooleanPostfixCompletionItem : PostfixCompletionItem
+    {
+        public BooleanPostfixCompletionItem(string label, string template, ASResult expr) : base(label, template, expr)
+        {
+        }
+
+        public override string Pattern { get { return TemplateUtils.PATTERN_BOOLEAN; }}
     }
 }

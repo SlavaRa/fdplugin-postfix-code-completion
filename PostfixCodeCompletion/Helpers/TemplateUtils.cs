@@ -18,6 +18,7 @@ namespace PostfixCodeCompletion.Helpers
         internal const string PATTERN_COLLECTION_KEY_TYPE = "$(CollectionKeyType)";
         internal const string PATTERN_COLLECTION_ITEM_TYPE = "$(CollectionItemType)";
         internal const string PATTERN_COLLECTION_OR_HASH = "$(CollectionOrHash)";
+        internal const string PATTERN_BOOLEAN = "$(Boolean)";
 
         internal static string GetTemplatesDir()
         {
@@ -46,6 +47,7 @@ namespace PostfixCodeCompletion.Helpers
                 if (type == TemplateType.Nullable && !content.Contains(PATTERN_NULLABLE)) continue;
                 if (type == TemplateType.Collection && !content.Contains(PATTERN_COLLECTION)) continue;
                 if (type == TemplateType.CollectionOrHash && !content.Contains(PATTERN_COLLECTION_OR_HASH)) continue;
+                if (type == TemplateType.Boolean && !content.Contains(PATTERN_BOOLEAN)) continue;
                 result.Add(file, string.Format("{0}{1}{0}", SnippetHelper.BOUNDARY, content.Replace("\r\n", "\n")));
             }
             return result;
@@ -121,6 +123,7 @@ namespace PostfixCodeCompletion.Helpers
         Member,
         Nullable,
         Collection,
-        CollectionOrHash
+        CollectionOrHash,
+        Boolean
     }
 }
