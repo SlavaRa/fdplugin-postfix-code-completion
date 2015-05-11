@@ -191,7 +191,7 @@ namespace PostfixCodeCompletion
                 case "as3":
                     return !new List<string>(new[] { "int", "uint", "Number", booleanKey }).Contains(type);
                 case "haxe":
-                    return !new List<string>(new[] { "Int", "UInt", "Float", booleanKey }).Contains(type);;
+                    return !new List<string>(new[] { "Int", "UInt", "Float", booleanKey }).Contains(type);
             }
             return false;
         }
