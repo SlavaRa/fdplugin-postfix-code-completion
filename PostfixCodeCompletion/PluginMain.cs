@@ -137,37 +137,25 @@ namespace PostfixCodeCompletion
             if (expr.Member != null && !string.IsNullOrEmpty(expr.Member.Type)) target = expr.Member;
             else if (expr.Type != null && !expr.Type.IsVoid()) target = expr.Type;
             else return;
+            List<ICompletionListItem> items = new List<ICompletionListItem>();
+            items.AddRange(GetCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr));
+            if (GetTargetIsNullable(target)) items.AddRange(GetCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr));
+            if (GetTargetIsCollection(target)) items.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
+            if (GetTargetIsHash(target)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
+            if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage == "haxe" && expr.Type != null)
+            {
+                if (GetTargetIsCollection(expr.Type)) items.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
+                if (GetTargetIsHash(expr.Type)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
+            }
+            if (GetTargetIsBoolean(target)) items.AddRange(GetCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr));
+            if (GetTargetIsDigit(target)) items.AddRange(GetCompletionItems(TemplateType.Digit, typeof(DigitPostfixCompletionItem), expr));
             if (completionList.Visible)
             {
-                AddCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr);
-                if (GetTargetIsNullable(target)) AddCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr);
-                if (GetTargetIsCollection(target)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr);
-                if (GetTargetIsHash(target)) AddCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr);
-                if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage == "haxe" && expr.Type != null)
-                {
-                    if (GetTargetIsCollection(expr.Type)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr);
-                    if (GetTargetIsHash(expr.Type)) AddCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr);
-                }
-                if (GetTargetIsBoolean(target)) AddCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr);
-                if (GetTargetIsDigit(target)) AddCompletionItems(TemplateType.Digit, typeof(DigitPostfixCompletionItem), expr);
+                completionList.Items.AddRange(items.ToArray());
+                Reflector.CompletionListAllItems().AddRange(items);
                 completionList.Height = (Math.Min(completionList.Items.Count, 10) + 1)*completionList.ItemHeight;
             }
-            else
-            {
-                List<ICompletionListItem> items = new List<ICompletionListItem>();
-                items.AddRange(GetCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr));
-                if (GetTargetIsNullable(target)) items.AddRange(GetCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr));
-                if (GetTargetIsCollection(target)) items.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
-                if (GetTargetIsHash(target)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
-                if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage == "haxe" && expr.Type != null)
-                {
-                    if (GetTargetIsCollection(expr.Type)) items.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
-                    if (GetTargetIsHash(expr.Type)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
-                }
-                if (GetTargetIsBoolean(target)) items.AddRange(GetCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr));
-                if (GetTargetIsDigit(target)) items.AddRange(GetCompletionItems(TemplateType.Digit, typeof(DigitPostfixCompletionItem), expr));
-                CompletionList.Show(items, false);
-            }
+            else CompletionList.Show(items, false);
         }
 
         static ASResult GetPostfixCompletionTarget()
@@ -290,13 +278,6 @@ namespace PostfixCodeCompletion
             }
         }
 
-        void AddCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
-        {
-            ICompletionListItem[] items = GetCompletionItems(templateType, itemType, expr).ToArray();
-            completionList.Items.AddRange(items);
-            Reflector.CompletionListAllItems().AddRange(items);
-        }
-
         static List<ICompletionListItem> GetCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
         {
             List<ICompletionListItem> result = new List<ICompletionListItem>();
@@ -304,8 +285,7 @@ namespace PostfixCodeCompletion
             {
                 string fileName = Path.GetFileNameWithoutExtension(pathToTemplate.Key);
                 ConstructorInfo constructorInfo = itemType.GetConstructor(new[] {typeof (string), typeof (string), typeof (ASResult)});
-                PostfixCompletionItem item = (PostfixCompletionItem) constructorInfo.Invoke(new object[] {fileName, pathToTemplate.Value, expr});
-                result.Add(item);
+                result.Add((PostfixCompletionItem) constructorInfo.Invoke(new object[] {fileName, pathToTemplate.Value, expr}));
             }
             return result;
         }
