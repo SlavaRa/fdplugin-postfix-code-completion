@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using ASCompletion.Completion;
 using ASCompletion.Context;
@@ -141,27 +142,30 @@ namespace PostfixCodeCompletion
                 AddCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr);
                 if (GetTargetIsNullable(target)) AddCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr);
                 if (GetTargetIsCollection(target)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr);
-                if (GetTargetIsCollectionOrHash(target)) AddCompletionItems(TemplateType.CollectionOrHash, typeof(CollectionOrHashPostfixCompletionItem), expr);
+                if (GetTargetIsHash(target)) AddCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr);
                 if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage == "haxe" && expr.Type != null)
                 {
                     if (GetTargetIsCollection(expr.Type)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr);
-                    if (GetTargetIsCollectionOrHash(expr.Type)) AddCompletionItems(TemplateType.CollectionOrHash, typeof(CollectionOrHashPostfixCompletionItem), expr);
+                    if (GetTargetIsHash(expr.Type)) AddCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr);
                 }
                 if (GetTargetIsBoolean(target)) AddCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr);
+                if (GetTargetIsDigit(target)) AddCompletionItems(TemplateType.Digit, typeof(DigitPostfixCompletionItem), expr);
                 completionList.Height = (Math.Min(completionList.Items.Count, 10) + 1)*completionList.ItemHeight;
             }
             else
             {
-                List<ICompletionListItem> items = GetCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr);
+                List<ICompletionListItem> items = new List<ICompletionListItem>();
+                items.AddRange(GetCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr));
                 if (GetTargetIsNullable(target)) items.AddRange(GetCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr));
                 if (GetTargetIsCollection(target)) items.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
-                if (GetTargetIsCollectionOrHash(target)) items.AddRange(GetCompletionItems(TemplateType.CollectionOrHash, typeof(CollectionOrHashPostfixCompletionItem), expr));
+                if (GetTargetIsHash(target)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
                 if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage == "haxe" && expr.Type != null)
                 {
                     if (GetTargetIsCollection(expr.Type)) items.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
-                    if (GetTargetIsCollectionOrHash(expr.Type)) items.AddRange(GetCompletionItems(TemplateType.CollectionOrHash, typeof(CollectionOrHashPostfixCompletionItem), expr));
+                    if (GetTargetIsHash(expr.Type)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
                 }
                 if (GetTargetIsBoolean(target)) items.AddRange(GetCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr));
+                if (GetTargetIsDigit(target)) items.AddRange(GetCompletionItems(TemplateType.Digit, typeof(DigitPostfixCompletionItem), expr));
                 CompletionList.Show(items, false);
             }
         }
@@ -213,17 +217,7 @@ namespace PostfixCodeCompletion
 
         static bool GetTargetIsNullable(MemberModel target)
         {
-            string type = target.Type;
-            string booleanKey = ASContext.Context.Features.booleanKey;
-            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
-            {
-                case "as2":
-                case "as3":
-                    return !new List<string>(new[] { "int", "uint", "Number", booleanKey }).Contains(type);
-                case "haxe":
-                    return !new List<string>(new[] { "Int", "UInt", "Float", booleanKey }).Contains(type);
-            }
-            return false;
+            return !GetTargetIsDigit(target) && target.Type != ASContext.Context.Features.booleanKey;
         }
 
         static bool GetTargetIsCollection(MemberModel target)
@@ -244,15 +238,21 @@ namespace PostfixCodeCompletion
             }
         }
 
-        static bool GetTargetIsCollectionOrHash(MemberModel target)
+        static bool GetTargetIsHash(MemberModel target)
         {
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
             {
                 case "as2":
                 case "as3":
                     string type = target.Type;
-                    return type == ASContext.Context.Features.objectKey || type == "Dictionary" || GetTargetIsCollection(target);
+                    return type == ASContext.Context.Features.objectKey || type == "Dictionary";
                 case "haxe":
+                    Func<MemberModel, bool> isIteratorOrIterable = (m) =>
+                    {
+                        string cleanType = Reflector.ASGeneratorCleanType(m.Type);
+                        return cleanType == "Iterator" || cleanType == "Iterable";
+                    };
+                    if (isIteratorOrIterable(target)) return true;
                     if (target is ClassModel)
                     {
                         ClassModel classModel = target as ClassModel;
@@ -260,19 +260,13 @@ namespace PostfixCodeCompletion
                         {
                             foreach (MemberModel member in classModel.Members)
                             {
-                                string cleanType = Reflector.ASGeneratorCleanType(member.Type);
-                                if (cleanType == "Iterator" || cleanType == "Iterable") return true;
+                                if (isIteratorOrIterable(member)) return true;
                             }
                             classModel.ResolveExtends();
                             classModel = classModel.Extends;
                         }
                     }
-                    else
-                    {
-                        string cleanType = Reflector.ASGeneratorCleanType(target.Type);
-                        if (cleanType == "Iterator" || cleanType == "Iterable") return true;
-                    }        
-                    return GetTargetIsCollection(target);
+                    break;
             }
             return false;
         }
@@ -280,6 +274,20 @@ namespace PostfixCodeCompletion
         static bool GetTargetIsBoolean(MemberModel target)
         {
             return target.Type == ASContext.Context.Features.booleanKey;
+        }
+
+        static bool GetTargetIsDigit(MemberModel target)
+        {
+            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
+            {
+                case "as2":
+                case "as3":
+                    return new List<string>(new[] {"int", "uint", "Number"}).Contains(target.Type);
+                case "haxe":
+                    return new List<string>(new[] {"Int", "UInt", "Float"}).Contains(target.Type);
+                default:
+                    return false;
+            }
         }
 
         void AddCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
@@ -341,7 +349,7 @@ namespace PostfixCodeCompletion
                 int lineNum = sci.CurrentLine;
                 int pos = sci.PositionFromLine(lineNum) + sci.GetLineIndentation(lineNum) / sci.Indent;
                 sci.SetSel(pos, sci.CurrentPos);
-                string snippet = template.Replace(Pattern, sci.SelText);
+                string snippet = Regex.Replace(template, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
                 snippet = TemplateUtils.ProcessMemberTemplate(snippet, expr);
                 snippet = ArgsProcessor.ProcessCodeStyleLineBreaks(snippet);
                 sci.ReplaceSel(string.Empty);
@@ -371,7 +379,7 @@ namespace PostfixCodeCompletion
                     line = line.Substring(indent, sci.CurrentPos - pos);
                     line = line.Substring(0, line.LastIndexOf('.'));
                     description = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
-                    description = description.Replace(Pattern, line);
+                    description = Regex.Replace(description, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), line, RegexOptions.IgnoreCase | RegexOptions.Multiline);
                     description = TemplateUtils.ProcessMemberTemplate(description, expr);
                     description = ArgsProcessor.ProcessCodeStyleLineBreaks(description);
                     description = description.Replace(SnippetHelper.ENTRYPOINT, "|");
@@ -403,10 +411,10 @@ namespace PostfixCodeCompletion
         public override string Pattern { get { return TemplateUtils.PATTERN_COLLECTION; }}
     }
 
-    class CollectionOrHashPostfixCompletionItem : PostfixCompletionItem
+    class HashPostfixCompletionItem : PostfixCompletionItem
     {
-        public CollectionOrHashPostfixCompletionItem(string label, string template, ASResult expr)
-            : base(label, TemplateUtils.ProcessCollectionOrHashTemplate(template, expr), expr)
+        public HashPostfixCompletionItem(string label, string template, ASResult expr)
+            : base(label, TemplateUtils.ProcessHashTemplate(template, expr), expr)
         {
         }
 
@@ -420,5 +428,14 @@ namespace PostfixCodeCompletion
         }
 
         public override string Pattern { get { return TemplateUtils.PATTERN_BOOLEAN; }}
+    }
+
+    class DigitPostfixCompletionItem : PostfixCompletionItem
+    {
+        public DigitPostfixCompletionItem(string label, string template, ASResult expr) : base(label, template, expr)
+        {
+        }
+
+        public override string Pattern { get { return TemplateUtils.PATTERN_DIGIT; } }
     }
 }
