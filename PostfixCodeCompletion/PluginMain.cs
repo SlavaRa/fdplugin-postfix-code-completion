@@ -142,12 +142,12 @@ namespace PostfixCodeCompletion
                 if (GetTargetIsNullable(target)) AddCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr);
                 if (GetTargetIsCollection(target)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr);
                 if (GetTargetIsCollectionOrHash(target)) AddCompletionItems(TemplateType.CollectionOrHash, typeof(CollectionOrHashPostfixCompletionItem), expr);
-                if (GetTargetIsBoolean(target)) AddCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr);
                 if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage == "haxe" && expr.Type != null)
                 {
                     if (GetTargetIsCollection(expr.Type)) AddCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr);
                     if (GetTargetIsCollectionOrHash(expr.Type)) AddCompletionItems(TemplateType.CollectionOrHash, typeof(CollectionOrHashPostfixCompletionItem), expr);
                 }
+                if (GetTargetIsBoolean(target)) AddCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr);
                 completionList.Height = (Math.Min(completionList.Items.Count, 10) + 1)*completionList.ItemHeight;
             }
             else
