@@ -45,8 +45,7 @@ namespace PostfixCodeCompletion.Helpers
         internal static Dictionary<string, string> GetTemplates(TemplateType type)
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
-            string path = GetTemplatesDir();
-            foreach (string file in Directory.GetFiles(path, "*.fds"))
+            foreach (string file in Directory.GetFiles(GetTemplatesDir(), "*.fds"))
             {
                 string content;
                 using (StreamReader reader = new StreamReader(File.OpenRead(file)))
@@ -99,8 +98,7 @@ namespace PostfixCodeCompletion.Helpers
                     template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, "int");
                     break;
             }
-            template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, type);
-            return template;
+            return template.Replace(PATTERN_COLLECTION_ITEM_TYPE, type);
         }
 
         internal static string ProcessHashTemplate(string template, ASResult expr)
