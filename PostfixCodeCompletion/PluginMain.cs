@@ -267,7 +267,7 @@ namespace PostfixCodeCompletion
                             classModel = classModel.Extends;
                         }
                     }
-                    else if (target is MemberModel)
+                    else
                     {
                         string cleanType = Reflector.ASGeneratorCleanType(target.Type);
                         if (cleanType == "Iterator" || cleanType == "Iterable") return true;
