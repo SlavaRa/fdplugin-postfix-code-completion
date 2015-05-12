@@ -10,14 +10,26 @@ namespace PostfixCodeCompletion.Helpers
 {
     static class TemplateUtils
     {
+        public const string PATTERN_BLOCK = @"\$\([^\)]*{0}.*?\)";
         internal const string POSTFIX_GENERATORS = "PostfixGenerators";
-        internal const string PATTERN_MEMBER = "$(Member)";
-        internal const string PATTERN_NULLABLE = "$(Nullable)";
-        internal const string PATTERN_COLLECTION = "$(Collection)";
+        internal const string PATTERN_MEMBER = "Member";
+        internal const string PATTERN_NULLABLE = "Nullable";
+        internal const string PATTERN_COLLECTION = "Collection";
         internal const string PATTERN_COLLECTION_KEY_TYPE = "$(CollectionKeyType)";
         internal const string PATTERN_COLLECTION_ITEM_TYPE = "$(CollectionItemType)";
-        internal const string PATTERN_COLLECTION_OR_HASH = "$(CollectionOrHash)";
-        internal const string PATTERN_BOOLEAN = "$(Boolean)";
+        internal const string PATTERN_COLLECTION_OR_HASH = "Hash";
+        internal const string PATTERN_BOOLEAN = "Boolean";
+        internal const string PATTERN_DIGIT = "Digit";
+
+        private static readonly Dictionary<TemplateType, string> TemplateTypeToPattern = new Dictionary<TemplateType, string>()
+        {
+            {TemplateType.Member, PATTERN_MEMBER},
+            {TemplateType.Nullable, PATTERN_NULLABLE},
+            {TemplateType.Collection, PATTERN_COLLECTION},
+            {TemplateType.Hash, PATTERN_COLLECTION_OR_HASH},
+            {TemplateType.Boolean, PATTERN_BOOLEAN},
+            {TemplateType.Digit, PATTERN_DIGIT}
+        };
 
         internal static string GetTemplatesDir()
         {
@@ -42,11 +54,9 @@ namespace PostfixCodeCompletion.Helpers
                     content = reader.ReadToEnd();
                     reader.Close();
                 }
-                if (type == TemplateType.Member && !content.Contains(PATTERN_MEMBER)) continue;
-                if (type == TemplateType.Nullable && !content.Contains(PATTERN_NULLABLE)) continue;
-                if (type == TemplateType.Collection && !content.Contains(PATTERN_COLLECTION)) continue;
-                if (type == TemplateType.CollectionOrHash && !content.Contains(PATTERN_COLLECTION_OR_HASH)) continue;
-                if (type == TemplateType.Boolean && !content.Contains(PATTERN_BOOLEAN)) continue;
+                if (type == TemplateType.Any
+                    || !TemplateTypeToPattern.ContainsKey(type)
+                    || !Regex.IsMatch(content, string.Format(PATTERN_BLOCK, TemplateTypeToPattern[type]), RegexOptions.IgnoreCase | RegexOptions.Multiline)) continue;
                 result.Add(file, string.Format("{0}{1}{0}", SnippetHelper.BOUNDARY, content.Replace("\r\n", "\n")));
             }
             return result;
@@ -93,7 +103,7 @@ namespace PostfixCodeCompletion.Helpers
             return template;
         }
 
-        internal static string ProcessCollectionOrHashTemplate(string template, ASResult expr)
+        internal static string ProcessHashTemplate(string template, ASResult expr)
         {
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
             {
@@ -107,7 +117,6 @@ namespace PostfixCodeCompletion.Helpers
                         template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, type == objectKey ? "String" : objectKey);
                         template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, "*");
                     }
-                    else template = ProcessCollectionTemplate(template, expr);
                     break;
             }
             return template;
@@ -120,7 +129,8 @@ namespace PostfixCodeCompletion.Helpers
         Member,
         Nullable,
         Collection,
-        CollectionOrHash,
-        Boolean
+        Hash,
+        Boolean,
+        Digit
     }
 }
