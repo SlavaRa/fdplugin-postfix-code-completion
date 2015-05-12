@@ -237,8 +237,8 @@ namespace PostfixCodeCompletion
                 case "as3":
                     return type.Contains("Vector.<") || type.Contains(string.Format("{0}@", arrayKey));
                 case "haxe":
-                    return type == TemplateUtils.CleanType(arrayKey)
-                    || type.Contains("Vector<") && TemplateUtils.CleanType(type) == TemplateUtils.CleanType("Vector<T>");
+                    return type == Reflector.ASGeneratorCleanType(arrayKey)
+                    || type.Contains("Vector<") && Reflector.ASGeneratorCleanType(type) == Reflector.ASGeneratorCleanType("Vector<T>");
                 default:
                     return false;
             }
@@ -260,7 +260,7 @@ namespace PostfixCodeCompletion
                         {
                             foreach (MemberModel member in classModel.Members)
                             {
-                                string cleanType = TemplateUtils.CleanType(member.Type);
+                                string cleanType = Reflector.ASGeneratorCleanType(member.Type);
                                 if (cleanType == "Iterator" || cleanType == "Iterable") return true;
                             }
                             classModel.ResolveExtends();
@@ -269,7 +269,7 @@ namespace PostfixCodeCompletion
                     }
                     else if (target is MemberModel)
                     {
-                        string cleanType = TemplateUtils.CleanType(target.Type);
+                        string cleanType = Reflector.ASGeneratorCleanType(target.Type);
                         if (cleanType == "Iterator" || cleanType == "Iterable") return true;
                     }        
                     return GetTargetIsCollection(target);
@@ -286,10 +286,7 @@ namespace PostfixCodeCompletion
         {
             ICompletionListItem[] items = GetCompletionItems(templateType, itemType, expr).ToArray();
             completionList.Items.AddRange(items);
-            #region completionList.allItems.AddRange(items);
-            FieldInfo member = typeof(CompletionList).GetField("allItems", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-            ((List<ICompletionListItem>) member.GetValue(typeof(List<ICompletionListItem>))).AddRange(items);
-            #endregion
+            Reflector.CompletionListAllItems().AddRange(items);
         }
 
         static List<ICompletionListItem> GetCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
