@@ -16,7 +16,7 @@ namespace PostfixCodeCompletion.Helpers
         }
         #endregion
 
-        #region return ASGenerator.GetShortType(type)
+        #region ASGenerator.GetShortType(type)
         internal static string ASGeneratorGetShortType(string type)
         {
             
@@ -25,7 +25,7 @@ namespace PostfixCodeCompletion.Helpers
         }
         #endregion
 
-        #region return ASGenerator.CleanType(type)
+        #region ASGenerator.CleanType(type)
         internal static string ASGeneratorCleanType(string type)
         {
             MethodInfo methodInfo = typeof(ASGenerator).GetMethod("CleanType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
