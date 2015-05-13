@@ -148,7 +148,8 @@ namespace PostfixCodeCompletion
                 if (GetTargetIsHash(expr.Type)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
             }
             if (GetTargetIsBoolean(target)) items.AddRange(GetCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr));
-            if (GetTargetIsDigit(target)) items.AddRange(GetCompletionItems(TemplateType.Digit, typeof(DigitPostfixCompletionItem), expr));
+            if (GetTargetIsNumber(target)) items.AddRange(GetCompletionItems(TemplateType.Number, typeof(NumberPostfixCompletionItem), expr));
+            if (GetTargetIsString(target)) items.AddRange(GetCompletionItems(TemplateType.String, typeof(StringPostfixCompletionItem), expr));
             if (completionList.Visible)
             {
                 completionList.Items.AddRange(items.ToArray());
@@ -161,7 +162,7 @@ namespace PostfixCodeCompletion
         static ASResult GetPostfixCompletionTarget()
         {
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            int lineNum = sci.CurrentLine;
+            int lineNum = sci.LineFromPosition(sci.CurrentPos);//TODO slavara: for 4.7.2, for 5.0+ sci.CurrentLine
             string line = sci.GetLine(lineNum);
             int positionFromLine = sci.PositionFromLine(lineNum);
             //{TODO slavara: refactor this
@@ -205,7 +206,7 @@ namespace PostfixCodeCompletion
 
         static bool GetTargetIsNullable(MemberModel target)
         {
-            return !GetTargetIsDigit(target) && target.Type != ASContext.Context.Features.booleanKey;
+            return !GetTargetIsNumber(target) && target.Type != ASContext.Context.Features.booleanKey;
         }
 
         static bool GetTargetIsCollection(MemberModel target)
@@ -264,7 +265,7 @@ namespace PostfixCodeCompletion
             return target.Type == ASContext.Context.Features.booleanKey;
         }
 
-        static bool GetTargetIsDigit(MemberModel target)
+        static bool GetTargetIsNumber(MemberModel target)
         {
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
             {
@@ -276,6 +277,11 @@ namespace PostfixCodeCompletion
                 default:
                     return false;
             }
+        }
+
+        static bool GetTargetIsString(MemberModel target)
+        {
+            return target.Type == "String";
         }
 
         static List<ICompletionListItem> GetCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
@@ -326,7 +332,7 @@ namespace PostfixCodeCompletion
                 int position = PluginMain.GetLeftDotPosition(sci);
                 sci.SetSel(position, sci.CurrentPos);
                 sci.ReplaceSel(string.Empty);
-                int lineNum = sci.CurrentLine;
+                int lineNum = sci.LineFromPosition(sci.CurrentPos);//TODO slavara: for 4.7.2, for 5.0+ sci.CurrentLine
                 int pos = sci.PositionFromLine(lineNum) + sci.GetLineIndentation(lineNum) / sci.Indent;
                 sci.SetSel(pos, sci.CurrentPos);
                 string snippet = Regex.Replace(template, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
@@ -352,7 +358,7 @@ namespace PostfixCodeCompletion
                 if (string.IsNullOrEmpty(description))
                 {
                     ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-                    int lineNum = sci.CurrentLine;
+                    int lineNum = sci.LineFromPosition(sci.CurrentPos);//TODO slavara: for 4.7.2, for 5.0+ sci.CurrentLine
                     int indent = sci.GetLineIndentation(lineNum) / sci.Indent;
                     int pos = sci.PositionFromLine(lineNum) + indent;
                     string line = sci.GetLine(lineNum);
@@ -410,12 +416,21 @@ namespace PostfixCodeCompletion
         public override string Pattern { get { return TemplateUtils.PATTERN_BOOLEAN; }}
     }
 
-    class DigitPostfixCompletionItem : PostfixCompletionItem
+    class NumberPostfixCompletionItem : PostfixCompletionItem
     {
-        public DigitPostfixCompletionItem(string label, string template, ASResult expr) : base(label, template, expr)
+        public NumberPostfixCompletionItem(string label, string template, ASResult expr) : base(label, template, expr)
         {
         }
 
-        public override string Pattern { get { return TemplateUtils.PATTERN_DIGIT; } }
+        public override string Pattern { get { return TemplateUtils.PATTERN_NUMBER; } }
+    }
+
+    class StringPostfixCompletionItem : PostfixCompletionItem
+    {
+        public StringPostfixCompletionItem(string label, string template, ASResult expr) : base(label, template, expr)
+        {
+        }
+
+        public override string Pattern { get { return TemplateUtils.PATTERN_STRING; } }
     }
 }

@@ -19,7 +19,8 @@ namespace PostfixCodeCompletion.Helpers
         internal const string PATTERN_COLLECTION_ITEM_TYPE = "$(CollectionItemType)";
         internal const string PATTERN_COLLECTION_OR_HASH = "Hash";
         internal const string PATTERN_BOOLEAN = "Boolean";
-        internal const string PATTERN_DIGIT = "Digit";
+        internal const string PATTERN_NUMBER = "Number";
+        internal const string PATTERN_STRING = "String";
 
         private static readonly Dictionary<TemplateType, string> TemplateTypeToPattern = new Dictionary<TemplateType, string>()
         {
@@ -28,7 +29,8 @@ namespace PostfixCodeCompletion.Helpers
             {TemplateType.Collection, PATTERN_COLLECTION},
             {TemplateType.Hash, PATTERN_COLLECTION_OR_HASH},
             {TemplateType.Boolean, PATTERN_BOOLEAN},
-            {TemplateType.Digit, PATTERN_DIGIT}
+            {TemplateType.Number, PATTERN_NUMBER},
+            {TemplateType.String, PATTERN_STRING}
         };
 
         internal static string GetTemplatesDir()
@@ -129,6 +131,7 @@ namespace PostfixCodeCompletion.Helpers
         Collection,
         Hash,
         Boolean,
-        Digit
+        Number,
+        String
     }
 }
