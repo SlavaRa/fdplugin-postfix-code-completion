@@ -187,12 +187,7 @@ namespace PostfixCodeCompletion
                 }
             }
             //}
-            #region return ASGenerator.GetStatementReturnType(sci, ASContext.Context.CurrentClass, line, positionFromLine).resolve
-            MethodInfo methodInfo = typeof(ASGenerator).GetMethod("GetStatementReturnType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-            object returnType = methodInfo.Invoke(null, new object[] { sci, ASContext.Context.CurrentClass, line, positionFromLine });
-            ASResult expr = returnType != null ? (ASResult)returnType.GetType().GetField("resolve").GetValue(returnType) : null;
-            return expr;
-            #endregion
+            return Reflector.ASGeneratorGetStatementReturnType(sci, line, positionFromLine);
         }
 
         internal static int GetLeftDotPosition(ScintillaControl sci)
@@ -284,7 +279,7 @@ namespace PostfixCodeCompletion
             return target.Type == "String";
         }
 
-        static List<ICompletionListItem> GetCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
+        static IEnumerable<ICompletionListItem> GetCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
         {
             List<ICompletionListItem> result = new List<ICompletionListItem>();
             foreach (KeyValuePair<string, string> pathToTemplate in TemplateUtils.GetTemplates(templateType))

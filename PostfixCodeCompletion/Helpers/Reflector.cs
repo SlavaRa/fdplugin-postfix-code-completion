@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using ASCompletion.Completion;
+using ASCompletion.Context;
 using PluginCore;
 using PluginCore.Controls;
+using ScintillaNet;
 
 namespace PostfixCodeCompletion.Helpers
 {
@@ -16,6 +18,14 @@ namespace PostfixCodeCompletion.Helpers
         }
         #endregion
 
+        #region ASGenerator.CleanType(type)
+        internal static string ASGeneratorCleanType(string type)
+        {
+            MethodInfo methodInfo = typeof(ASGenerator).GetMethod("CleanType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
+            return (string)methodInfo.Invoke(null, new object[] { type });
+        }
+        #endregion
+
         #region ASGenerator.GetShortType(type)
         internal static string ASGeneratorGetShortType(string type)
         {
@@ -25,11 +35,13 @@ namespace PostfixCodeCompletion.Helpers
         }
         #endregion
 
-        #region ASGenerator.CleanType(type)
-        internal static string ASGeneratorCleanType(string type)
+        #region ASGenerator.GetStatementReturnType(sci, ASContext.Context.CurrentClass, line, positionFromLine).resolve
+        internal static ASResult ASGeneratorGetStatementReturnType(ScintillaControl sci, string line, int positionFromLine)
         {
-            MethodInfo methodInfo = typeof(ASGenerator).GetMethod("CleanType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-            return (string)methodInfo.Invoke(null, new object[] { type });
+            MethodInfo methodInfo = typeof(ASGenerator).GetMethod("GetStatementReturnType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
+            object returnType = methodInfo.Invoke(null, new object[] { sci, ASContext.Context.CurrentClass, line, positionFromLine });
+            ASResult expr = returnType != null ? (ASResult)returnType.GetType().GetField("resolve").GetValue(returnType) : null;
+            return expr;
         }
         #endregion
     }
