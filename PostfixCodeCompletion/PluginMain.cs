@@ -258,13 +258,15 @@ namespace PostfixCodeCompletion
 
         static bool GetTargetIsNumber(MemberModel target)
         {
+            string type = target.Type;
+            if (type == ASContext.Context.Features.numberKey) return true;
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
             {
                 case "as2":
                 case "as3":
-                    return new List<string>(new[] {"int", "uint", "Number"}).Contains(target.Type);
+                    return type == "int" || type == "uint";
                 case "haxe":
-                    return new List<string>(new[] {"Int", "UInt", "Float"}).Contains(target.Type);
+                    return type == "Int" || type == "UInt";
                 default:
                     return false;
             }
