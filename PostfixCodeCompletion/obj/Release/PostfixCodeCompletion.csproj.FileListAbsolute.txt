@@ -1,0 +1,11 @@
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\PostfixCodeCompletion.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\PostfixCodeCompletion.pdb
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\ASCompletion.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\FlashDevelop.exe
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\PluginCore.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\Scripting.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\FlashDevelop.pdb
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\ASCompletion.pdb
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\obj\Release\PostfixCodeCompletion.csprojResolveAssemblyReference.cache
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\obj\Release\PostfixCodeCompletion.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\obj\Release\PostfixCodeCompletion.pdb
