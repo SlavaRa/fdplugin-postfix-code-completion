@@ -1,0 +1,3 @@
+for (i in 0...$(Collection).length) $(CSLB){
+	$(EntryPoint)
+}
