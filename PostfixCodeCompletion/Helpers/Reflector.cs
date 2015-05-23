@@ -44,5 +44,19 @@ namespace PostfixCodeCompletion.Helpers
             return expr;
         }
         #endregion
+
+        #region ScintillaControl.CurrentLine 
+        /// <summary>
+        /// For 4.7.2 only, for 5.0+ please use sci.CurrentLine
+        /// </summary>
+        internal static int ScintillaControlCurrentLine
+        {
+            get
+            {
+                ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
+                return sci.LineFromPosition(sci.CurrentPos);
+            }
+        }
+        #endregion
     }
 }
