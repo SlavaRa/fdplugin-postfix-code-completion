@@ -212,7 +212,7 @@ namespace PostfixCodeCompletion
                     return type.Contains("Vector.<") || type.Contains(string.Format("{0}@", arrayKey));
                 case "haxe":
                     return type == Reflector.ASGeneratorCleanType(arrayKey)
-                    || type.Contains("Vector<") && Reflector.ASGeneratorCleanType(type) == Reflector.ASGeneratorCleanType("Vector<T>");
+                        || type.Contains("Vector<") && Reflector.ASGeneratorCleanType(type) == Reflector.ASGeneratorCleanType("Vector<T>");
                 default:
                     return false;
             }
