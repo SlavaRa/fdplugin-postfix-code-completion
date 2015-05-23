@@ -190,15 +190,6 @@ namespace PostfixCodeCompletion
             return Reflector.ASGeneratorGetStatementReturnType(sci, line, positionFromLine);
         }
 
-        internal static int GetLeftDotPosition(ScintillaControl sci)
-        {
-            for (int i = sci.CurrentPos - 1; i >= 0; --i)
-            {
-                if ((char)sci.CharAt(i) == '.') return i;
-            }
-            return -1;
-        }
-
         static bool GetTargetIsNullable(MemberModel target)
         {
             return !GetTargetIsNumber(target) && target.Type != ASContext.Context.Features.booleanKey;
@@ -324,17 +315,28 @@ namespace PostfixCodeCompletion
             get
             {
                 ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-                int position = PluginMain.GetLeftDotPosition(sci);
+                int position = sci.CurrentPos;
+                for (int i = sci.CurrentPos; i > 0; i--)
+                {
+                    if ((char) sci.CharAt(i) != '.') continue;
+                    position = i;
+                    break;
+                }
                 sci.SetSel(position, sci.CurrentPos);
                 sci.ReplaceSel(string.Empty);
-                int lineNum = sci.LineFromPosition(sci.CurrentPos);//TODO slavara: for 4.7.2, for 5.0+ sci.CurrentLine
-                int pos = sci.PositionFromLine(lineNum) + sci.GetLineIndentation(lineNum) / sci.Indent;
-                sci.SetSel(pos, sci.CurrentPos);
+                for (int i = sci.CurrentPos; i > 0; i--)
+                {
+                    char c = (char) sci.CharAt(i - 1);
+                    if (char.IsLetter(c) || c == '.') continue;
+                    position = i;
+                    break;
+                }
+                sci.SetSel(position, sci.CurrentPos);
                 string snippet = Regex.Replace(template, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
                 snippet = TemplateUtils.ProcessMemberTemplate(snippet, expr);
                 snippet = ArgsProcessor.ProcessCodeStyleLineBreaks(snippet);
                 sci.ReplaceSel(string.Empty);
-                SnippetHelper.InsertSnippetText(sci, pos, snippet);
+                SnippetHelper.InsertSnippetText(sci, position, snippet);
                 return null;
             }
         }
