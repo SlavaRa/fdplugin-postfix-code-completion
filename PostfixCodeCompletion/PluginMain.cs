@@ -162,20 +162,26 @@ namespace PostfixCodeCompletion
         static ASResult GetPostfixCompletionTarget()
         {
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            int lineNum = sci.LineFromPosition(sci.CurrentPos);//TODO slavara: for 4.7.2, for 5.0+ sci.CurrentLine
-            string line = sci.GetLine(lineNum);
-            int positionFromLine = sci.PositionFromLine(lineNum);
-            //{TODO slavara: refactor this
-            //TODO slavara: check comments before
-            int currentPos = sci.CurrentPos - 1;
-            if (sci.CharAt(currentPos) == '.')
+            int currentLine = Reflector.ScintillaControlCurrentLine;
+            int positionFromLine = sci.PositionFromLine(currentLine);
+            int position = -1;
+            for (int i = sci.CurrentPos; i > positionFromLine; i--)
             {
-                currentPos -= positionFromLine;
-                line = line.Remove(currentPos);
-                line = line.Insert(currentPos, ";");
+                char c = (char)sci.CharAt(i);
+                if (c != '.') continue;
+                position = i;
+                break;
+            }
+            string line = sci.GetLine(currentLine);
+            if (position != -1)
+            {
+                position -= positionFromLine;
+                line = line.Remove(position);
+                line = line.Insert(position, ";");
             }
             else if (ASComplete.GetExpressionType(sci, sci.CurrentPos).IsNull())
             {
+                int currentPos = sci.CurrentPos - 1;
                 string wordUnderCursor = sci.GetWordFromPosition(currentPos);
                 if (!string.IsNullOrEmpty(wordUnderCursor))
                 {
@@ -186,7 +192,6 @@ namespace PostfixCodeCompletion
                     line = line.Insert(currentPos, ";");
                 }
             }
-            //}
             return Reflector.ASGeneratorGetStatementReturnType(sci, line, positionFromLine);
         }
 
@@ -355,7 +360,7 @@ namespace PostfixCodeCompletion
                 if (string.IsNullOrEmpty(description))
                 {
                     ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-                    int lineNum = sci.LineFromPosition(sci.CurrentPos);//TODO slavara: for 4.7.2, for 5.0+ sci.CurrentLine
+                    int lineNum = Reflector.ScintillaControlCurrentLine;
                     int indent = sci.GetLineIndentation(lineNum) / sci.Indent;
                     int pos = sci.PositionFromLine(lineNum) + indent;
                     string line = sci.GetLine(lineNum);
