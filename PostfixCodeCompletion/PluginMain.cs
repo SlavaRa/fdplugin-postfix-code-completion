@@ -329,27 +329,7 @@ namespace PostfixCodeCompletion
                 }
                 sci.SetSel(position, sci.CurrentPos);
                 sci.ReplaceSel(string.Empty);
-                int arrCount = 0;
-                int parCount = 0;
-                int genCount = 0;
-                int braCount = 0;
-                for (int i = sci.CurrentPos; i > 0; i--)
-                {
-                    char c = (char) sci.CharAt(i - 1);
-                    if (c == ']') arrCount++;
-                    else if (c == '[') arrCount--;
-                    else if (c == ')') parCount++;
-                    else if (c == '(') parCount--;
-                    else if (c == '>') genCount++;
-                    else if (c == '<') genCount--;
-                    else if (c == '}') braCount++;
-                    else if (c == '{') braCount--;
-                    else if (arrCount == 0 && parCount == 0 && genCount == 0 && braCount == 0 && !char.IsLetter(c) && c != '.')
-                    {
-                        position = i;
-                        break;
-                    }
-                }
+                position = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
                 sci.SetSel(position, sci.CurrentPos);
                 string snippet = Regex.Replace(template, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
                 snippet = TemplateUtils.ProcessMemberTemplate(snippet, expr);
@@ -374,14 +354,19 @@ namespace PostfixCodeCompletion
                 if (string.IsNullOrEmpty(description))
                 {
                     ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
+                    int dotPosition = sci.CurrentPos - 1;
+                    for (int i = sci.CurrentPos; i > 0; i--)
+                    {
+                        if ((char)sci.CharAt(i) != '.') continue;
+                        dotPosition = i;
+                        break;
+                    }
+                    int exprStartPosition = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
                     int lineNum = Reflector.ScintillaControlCurrentLine;
-                    int indent = sci.GetLineIndentation(lineNum) / sci.Indent;
-                    int pos = sci.PositionFromLine(lineNum) + indent;
                     string line = sci.GetLine(lineNum);
-                    line = line.Substring(indent, sci.CurrentPos - pos);
-                    line = line.Substring(0, line.LastIndexOf('.'));
+                    string snippet = line.Substring(exprStartPosition - sci.PositionFromLine(lineNum), dotPosition - exprStartPosition);
                     description = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
-                    description = Regex.Replace(description, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), line, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                    description = Regex.Replace(description, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), snippet, RegexOptions.IgnoreCase | RegexOptions.Multiline);
                     description = TemplateUtils.ProcessMemberTemplate(description, expr);
                     description = ArgsProcessor.ProcessCodeStyleLineBreaks(description);
                     description = description.Replace(SnippetHelper.ENTRYPOINT, "|");
