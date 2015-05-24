@@ -131,16 +131,9 @@ namespace PostfixCodeCompletion
         {
             string templates = TemplateUtils.GetTemplatesDir();
             if (!Directory.Exists(templates)) return;
-            ASResult expr = GetPostfixCompletionTarget();
-            if (expr == null || expr.IsNull()) return;
-            MemberModel target;
-            if (expr.Member != null && !string.IsNullOrEmpty(expr.Member.Type)
-                && expr.Member.Type != ASContext.Context.Features.voidKey)
-            {
-                target = expr.Member;
-            }
-            else if (expr.Type != null && !expr.Type.IsVoid()) target = expr.Type;
-            else return;
+            ASResult expr = GetPostfixCompletionExpr();
+            MemberModel target = GetPostfixCompletionTarget(expr);
+            if (target == null) return;
             List<ICompletionListItem> items = new List<ICompletionListItem>();
             items.AddRange(GetCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr));
             if (GetTargetIsNullable(target)) items.AddRange(GetCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr));
@@ -148,8 +141,12 @@ namespace PostfixCodeCompletion
             if (GetTargetIsHash(target)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
             if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage == "haxe" && expr.Type != null)
             {
-                if (GetTargetIsCollection(expr.Type)) items.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
-                if (GetTargetIsHash(expr.Type)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
+                ClassModel type = expr.Type;
+                if (!string.IsNullOrEmpty(type.Type) && type.Type != ASContext.Context.Features.voidKey)
+                {
+                    if (GetTargetIsCollection(type)) items.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
+                    if (GetTargetIsHash(type)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
+                }
             }
             if (GetTargetIsBoolean(target)) items.AddRange(GetCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr));
             if (GetTargetIsNumber(target)) items.AddRange(GetCompletionItems(TemplateType.Number, typeof(NumberPostfixCompletionItem), expr));
@@ -163,7 +160,7 @@ namespace PostfixCodeCompletion
             else CompletionList.Show(items, false);
         }
 
-        static ASResult GetPostfixCompletionTarget()
+        static ASResult GetPostfixCompletionExpr()
         {
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
             int currentLine = Reflector.ScintillaControlCurrentLine;
@@ -176,27 +173,24 @@ namespace PostfixCodeCompletion
                 position = i;
                 break;
             }
+            if (position == -1) return null;
+            position -= positionFromLine;
             string line = sci.GetLine(currentLine);
-            if (position != -1)
-            {
-                position -= positionFromLine;
-                line = line.Remove(position);
-                line = line.Insert(position, ";");
-            }
-            else if (ASComplete.GetExpressionType(sci, sci.CurrentPos).IsNull())
-            {
-                int currentPos = sci.CurrentPos - 1;
-                string wordUnderCursor = sci.GetWordFromPosition(currentPos);
-                if (!string.IsNullOrEmpty(wordUnderCursor))
-                {
-                    int wordStartPosition = sci.WordStartPosition(currentPos, true);
-                    currentPos = wordStartPosition - 1;
-                    currentPos -= positionFromLine;
-                    line = line.Remove(currentPos, wordUnderCursor.Length + 1);
-                    line = line.Insert(currentPos, ";");
-                }
-            }
+            line = line.Remove(position);
+            line = line.Insert(position, ";");
             return Reflector.ASGeneratorGetStatementReturnType(sci, line, positionFromLine);
+        }
+
+        static MemberModel GetPostfixCompletionTarget(ASResult expr)
+        {
+            if (expr == null || expr.IsNull()) return null;
+            MemberModel member = expr.Member;
+            if (member != null && !string.IsNullOrEmpty(member.Type) && member.Type != ASContext.Context.Features.voidKey)
+                return member;
+            ClassModel type = expr.Type;
+            if (type != null && !type.IsVoid() && !string.IsNullOrEmpty(type.Type) && type.Type != ASContext.Context.Features.voidKey)
+                return type;
+            return null;
         }
 
         static bool GetTargetIsNullable(MemberModel target)
@@ -335,12 +329,26 @@ namespace PostfixCodeCompletion
                 }
                 sci.SetSel(position, sci.CurrentPos);
                 sci.ReplaceSel(string.Empty);
+                int arrCount = 0;
+                int parCount = 0;
+                int genCount = 0;
+                int braCount = 0;
                 for (int i = sci.CurrentPos; i > 0; i--)
                 {
                     char c = (char) sci.CharAt(i - 1);
-                    if (char.IsLetter(c) || c == '.') continue;
-                    position = i;
-                    break;
+                    if (c == ']') arrCount++;
+                    else if (c == '[') arrCount--;
+                    else if (c == ')') parCount++;
+                    else if (c == '(') parCount--;
+                    else if (c == '>') genCount++;
+                    else if (c == '<') genCount--;
+                    else if (c == '}') braCount++;
+                    else if (c == '{') braCount--;
+                    else if (arrCount == 0 && parCount == 0 && genCount == 0 && braCount == 0 && !char.IsLetter(c) && c != '.')
+                    {
+                        position = i;
+                        break;
+                    }
                 }
                 sci.SetSel(position, sci.CurrentPos);
                 string snippet = Regex.Replace(template, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
