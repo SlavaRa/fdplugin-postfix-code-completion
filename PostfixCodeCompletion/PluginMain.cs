@@ -134,7 +134,11 @@ namespace PostfixCodeCompletion
             ASResult expr = GetPostfixCompletionTarget();
             if (expr == null || expr.IsNull()) return;
             MemberModel target;
-            if (expr.Member != null && !string.IsNullOrEmpty(expr.Member.Type)) target = expr.Member;
+            if (expr.Member != null && !string.IsNullOrEmpty(expr.Member.Type)
+                && expr.Member.Type != ASContext.Context.Features.voidKey)
+            {
+                target = expr.Member;
+            }
             else if (expr.Type != null && !expr.Type.IsVoid()) target = expr.Type;
             else return;
             List<ICompletionListItem> items = new List<ICompletionListItem>();
