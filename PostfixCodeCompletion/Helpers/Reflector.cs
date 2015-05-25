@@ -26,6 +26,15 @@ namespace PostfixCodeCompletion.Helpers
         }
         #endregion
 
+        #region ASGenerator.GuessVarName(type)
+        internal static string ASGeneratorGuessVarName(string name, string type)
+        {
+
+            MethodInfo methodInfo = typeof(ASGenerator).GetMethod("GuessVarName", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
+            return (string)methodInfo.Invoke(null, new object[] { name, type });
+        }
+        #endregion
+
         #region ASGenerator.GetShortType(type)
         internal static string ASGeneratorGetShortType(string type)
         {
