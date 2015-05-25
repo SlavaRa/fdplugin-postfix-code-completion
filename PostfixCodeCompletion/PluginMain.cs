@@ -134,23 +134,7 @@ namespace PostfixCodeCompletion
             ASResult expr = GetPostfixCompletionExpr();
             MemberModel target = GetPostfixCompletionTarget(expr);
             if (target == null) return;
-            List<ICompletionListItem> items = new List<ICompletionListItem>();
-            items.AddRange(GetCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr));
-            if (GetTargetIsNullable(target)) items.AddRange(GetCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr));
-            if (GetTargetIsCollection(target)) items.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
-            if (GetTargetIsHash(target)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
-            if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage == "haxe" && expr.Type != null)
-            {
-                ClassModel type = expr.Type;
-                if (!string.IsNullOrEmpty(type.Type) && type.Type != ASContext.Context.Features.voidKey)
-                {
-                    if (GetTargetIsCollection(type)) items.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
-                    if (GetTargetIsHash(type)) items.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
-                }
-            }
-            if (GetTargetIsBoolean(target)) items.AddRange(GetCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr));
-            if (GetTargetIsNumber(target)) items.AddRange(GetCompletionItems(TemplateType.Number, typeof(NumberPostfixCompletionItem), expr));
-            if (GetTargetIsString(target)) items.AddRange(GetCompletionItems(TemplateType.String, typeof(StringPostfixCompletionItem), expr));
+            List<ICompletionListItem> items = GetPostfixCompletionItems(target, expr);
             if (completionList.Visible)
             {
                 completionList.Items.AddRange(items.ToArray());
@@ -179,6 +163,29 @@ namespace PostfixCodeCompletion
             line = line.Remove(position);
             line = line.Insert(position, ";");
             return Reflector.ASGeneratorGetStatementReturnType(sci, line, positionFromLine);
+        }
+
+        static List<ICompletionListItem> GetPostfixCompletionItems(MemberModel target, ASResult expr)
+        {
+            List<ICompletionListItem> result = new List<ICompletionListItem>();
+            result.AddRange(GetCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr));
+            if (GetTargetIsNullable(target)) result.AddRange(GetCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr));
+            if (GetTargetIsCollection(target)) result.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
+            if (GetTargetIsHash(target)) result.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));
+            bool isHaxe = PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage == "haxe";
+            ClassModel type = expr.Type != null && !string.IsNullOrEmpty(expr.Type.Type) &&
+                              expr.Type.Type != ASContext.Context.Features.voidKey
+                ? expr.Type
+                : null;
+            if (isHaxe && type != null)
+            {
+                if (GetTargetIsCollection(type)) result.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
+                if (GetTargetIsHash(type)) result.AddRange(GetCompletionItems(TemplateType.Hash, typeof(HashPostfixCompletionItem), expr));  
+            } 
+            if (GetTargetIsBoolean(target)) result.AddRange(GetCompletionItems(TemplateType.Boolean, typeof(BooleanPostfixCompletionItem), expr));
+            if (GetTargetIsNumber(target)) result.AddRange(GetCompletionItems(TemplateType.Number, typeof(NumberPostfixCompletionItem), expr));
+            if (GetTargetIsString(target)) result.AddRange(GetCompletionItems(TemplateType.String, typeof(StringPostfixCompletionItem), expr));
+            return result.Distinct().ToList();
         }
 
         static MemberModel GetPostfixCompletionTarget(ASResult expr)
@@ -377,6 +384,17 @@ namespace PostfixCodeCompletion
         }
 
         public new string ToString() { return Description; }
+
+        public override bool Equals(object obj)
+        {
+            PostfixCompletionItem other = (PostfixCompletionItem)obj;
+            return other.Label == Label && other.template == template && other.expr == expr;
+        }
+
+        public override int GetHashCode()
+        {
+            return Label.GetHashCode() ^ template.GetHashCode() ^ expr.GetHashCode();
+        }
     }
 
     class NullablePostfixCompletionItem : PostfixCompletionItem
