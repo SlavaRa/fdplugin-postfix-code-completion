@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using ASCompletion.Completion;
 using ASCompletion.Context;
+using ASCompletion.Model;
 using PluginCore;
 using PluginCore.Helpers;
 
@@ -63,26 +64,33 @@ namespace PostfixCodeCompletion.Helpers
             return result;
         }
 
-        internal static string ProcessMemberTemplate(string template, ASResult expr)
+        internal static KeyValuePair<string, string> GetVarNameToQualifiedName(ASResult expr)
         {
-            string type;
-            string name;
-            if (expr.Member != null)
-            {
-                type = expr.Member.Type;
-                name = expr.Member.Name;
-            }
+            string type = null;
+            string varname = string.Empty;
+            string word = string.Empty;
+            MemberModel member = expr.Member;
+            if (member != null && member.Type != null) type = member.Type;
             else
             {
-                type = expr.Type.QualifiedName;
-                name = expr.Type.Name;
+                ClassModel cType = expr.Type;
+                if (cType != null && cType.Name != null) type = cType.QualifiedName;
             }
-            if (type.Contains("@")) type = type.Substring(0, type.IndexOf("@"));
-            type = Reflector.ASGeneratorGetShortType(type);
-            if (string.IsNullOrEmpty(name)) name = type;
-            name = name.ToLower();
+            if (member != null && member.Name != null) varname = Reflector.ASGeneratorGuessVarName(member.Name, type);
+            if (!string.IsNullOrEmpty(word) && char.IsDigit(word[0])) word = null;
+            if (!string.IsNullOrEmpty(word) && (string.IsNullOrEmpty(type) || Regex.IsMatch(type, "(<[^]]+>)"))) word = null;
+            if (!string.IsNullOrEmpty(type) && type == ASContext.Context.Features.voidKey) type = null;
+            if (string.IsNullOrEmpty(varname)) varname = Reflector.ASGeneratorGuessVarName(word, type);
+            if (!string.IsNullOrEmpty(varname) && varname == word && varname.Length == 1) varname = string.Format("{0}1", varname);
+            return new KeyValuePair<string, string>(varname, type);
+        }
+
+        internal static string ProcessMemberTemplate(string template, ASResult expr)
+        {
+            var varNameToQualifiedName = GetVarNameToQualifiedName(expr);
+            string name = varNameToQualifiedName.Key.ToLower();
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
-            template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", type);
+            template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", varNameToQualifiedName.Value);
             return template;
         }
 
