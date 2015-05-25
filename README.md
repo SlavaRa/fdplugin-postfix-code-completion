@@ -1,7 +1,7 @@
 PostfixCodeCompletion plugin for FlashDevelop
 ========================
 
-RC-1.0.2 fdz: https://github.com/SlavaRa/fd-postfix-code-completion-plugin/blob/master/PostfixCodeCompletion.fdz
+RC-1.0.3 fdz: https://github.com/SlavaRa/fd-postfix-code-completion-plugin/blob/master/PostfixCodeCompletion.fdz
 
 ------------------------
 ![wip1](https://dl.dropboxusercontent.com/u/63456010/FlashDevelop/postfixcodecompletion/wip-11052015.gif)
