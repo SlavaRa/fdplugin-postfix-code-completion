@@ -387,6 +387,7 @@ namespace PostfixCodeCompletion
 
         public override bool Equals(object obj)
         {
+            if (!(obj is PostfixCompletionItem)) return false;
             PostfixCompletionItem other = (PostfixCompletionItem)obj;
             return other.Label == Label && other.template == template && other.expr == expr;
         }
