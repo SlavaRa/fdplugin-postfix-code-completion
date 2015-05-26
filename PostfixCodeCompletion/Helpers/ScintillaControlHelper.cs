@@ -9,6 +9,7 @@ namespace PostfixCodeCompletion.Helpers
     {
         internal static int GetExpressionStartPosition(ScintillaControl sci, int position, ASResult expr)
         {
+            string characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
             int result = 0;
             int arrCount = 0;
             int parCount = 0;
@@ -25,7 +26,7 @@ namespace PostfixCodeCompletion.Helpers
                 else if (c == '<' && genCount > 0) genCount--;
                 else if (c == '}') braCount++;
                 else if (c == '{' && braCount > 0) braCount--;
-                else if (arrCount == 0 && parCount == 0 && genCount == 0 && braCount == 0 && !char.IsLetter(c) && c != '.')
+                else if (arrCount == 0 && parCount == 0 && genCount == 0 && braCount == 0 && !characters.Contains(c) && c != '.')
                 {
                     result = i;
                     break;
@@ -38,8 +39,7 @@ namespace PostfixCodeCompletion.Helpers
 
         internal static int GetWordLeftStartPosition(ScintillaControl sci, int position, bool skipWhiteSpace)
         {
-            Language config = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage);
-            string characterClass = config.characterclass.Characters;
+            string characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
             while (position >= 0)
             {
                 char c = (char) sci.CharAt(position);
@@ -47,7 +47,7 @@ namespace PostfixCodeCompletion.Helpers
                 {
                     if (!skipWhiteSpace) return position + 1;
                 }
-                else if (!characterClass.Contains(c)) return position + 1;
+                else if (!characters.Contains(c)) return position + 1;
                 else skipWhiteSpace = false;
                 position--;
             }
