@@ -24,8 +24,10 @@ namespace PostfixCodeCompletion
 {
     public class PluginMain : IPlugin
     {
-        private string settingFilename;
-        private ListBox completionList;
+        string settingFilename;
+        ListBox completionList;
+        int completionListAllItemsCount;
+        Timer timer;
 
         #region Required Properties
 
@@ -46,9 +48,17 @@ namespace PostfixCodeCompletion
         /// </summary>
         public void Initialize()
         {
+            InitTimer();
             InitBasics();
             LoadSettings();
             AddEventHandlers();
+        }
+
+        void InitTimer()
+        {
+            timer = new Timer();
+            timer.Interval = 200;
+            timer.Tick += OnTick;
         }
 
         /// <summary>
@@ -56,6 +66,12 @@ namespace PostfixCodeCompletion
         /// </summary>
         public void Dispose()
         {
+            if (timer != null)
+            {
+                timer.Tick -= OnTick;
+                timer.Stop();
+                timer = null;
+            }
             SaveSettings();
         }
 
@@ -142,6 +158,8 @@ namespace PostfixCodeCompletion
                 completionList.Height = (Math.Min(completionList.Items.Count, 10) + 1)*completionList.ItemHeight;
             }
             else CompletionList.Show(items, false);
+            completionListAllItemsCount = Reflector.CompletionListAllItems().Count;
+            timer.Start();
         }
 
         static ASResult GetPostfixCompletionExpr()
@@ -301,6 +319,13 @@ namespace PostfixCodeCompletion
         void OnCompletionListVisibleChanged(object o, EventArgs args)
         {
             if (completionList.Visible) UpdateCompletionList();
+            else timer.Stop();
+        }
+
+        //NOTE slavara: trick for mixed-autocompletion of Haxe
+        void OnTick(object sender, EventArgs eventArgs)
+        {
+            if (Reflector.CompletionListAllItems().Count != completionListAllItemsCount) UpdateCompletionList();
         }
 
         #endregion
