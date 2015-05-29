@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using ASCompletion.Completion;
 using ScintillaNet;
-using ScintillaNet.Configuration;
 
 namespace PostfixCodeCompletion.Helpers
 {
