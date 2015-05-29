@@ -15,6 +15,8 @@ namespace PostfixCodeCompletion.Helpers
             int parCount = 0;
             int genCount = 0;
             int braCount = 0;
+            int dQuotes = 0;
+            int sQuotes = 0;
             for (int i = position; i > 0; i--)
             {
                 char c = (char)sci.CharAt(i - 1);
@@ -26,7 +28,21 @@ namespace PostfixCodeCompletion.Helpers
                 else if (c == '<' && genCount > 0) genCount--;
                 else if (c == '}') braCount++;
                 else if (c == '{' && braCount > 0) braCount--;
-                else if (arrCount == 0 && parCount == 0 && genCount == 0 && braCount == 0 && !characters.Contains(c) && c != '.')
+                else if (c == '\"' && sQuotes == 0)
+                {
+                    if (i <= 1 || (char) sci.CharAt(i - 2) == '\\') continue;
+                    if (dQuotes == 0) dQuotes++;
+                    else dQuotes--;
+                }
+                else if (c == '\'' && dQuotes == 0)
+                {
+                    if (i <= 1 || (char) sci.CharAt(i - 2) == '\\') continue;
+                    if (sQuotes == 0) sQuotes++;
+                    else sQuotes--;
+                }
+                else if (arrCount == 0 && parCount == 0 && genCount == 0 && braCount == 0
+                         && dQuotes == 0 && sQuotes == 0
+                         && !characters.Contains(c) && c != '.')
                 {
                     result = i;
                     break;
