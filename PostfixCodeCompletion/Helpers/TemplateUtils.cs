@@ -90,9 +90,11 @@ namespace PostfixCodeCompletion.Helpers
         {
             var varNameToQualifiedName = GetVarNameToQualifiedName(expr);
             string name = varNameToQualifiedName.Key.ToLower();
+            string type = varNameToQualifiedName.Value;
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
-            if (ASContext.Context is HaXeContext.Context && Settings != null && Settings.DisableTypeDeclaration) template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", null);
-            else template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", varNameToQualifiedName.Value);
+            if (ASContext.Context is HaXeContext.Context && Settings != null && Settings.DisableTypeDeclaration) type = null;
+            if (!string.IsNullOrEmpty(type)) type = MemberModel.FormatType(Reflector.ASGeneratorGetShortType(type));
+            template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", type);
             return template;
         }
 
