@@ -9,3 +9,16 @@ D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeComplet
 D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\obj\Release\PostfixCodeCompletion.csprojResolveAssemblyReference.cache
 D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\obj\Release\PostfixCodeCompletion.dll
 D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\obj\Release\PostfixCodeCompletion.pdb
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\AS2Context.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\HaXeContext.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\ProjectManager.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\SwfOp.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\AS3Context.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\FlashConnect.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\XMLCompletion.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\AS2Context.pdb
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\HaXeContext.pdb
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\ProjectManager.pdb
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\AS3Context.pdb
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\FlashConnect.pdb
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\XMLCompletion.pdb
