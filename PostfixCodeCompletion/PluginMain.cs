@@ -52,6 +52,7 @@ namespace PostfixCodeCompletion
             InitBasics();
             LoadSettings();
             AddEventHandlers();
+            TemplateUtils.Settings = (PostfixCodeCompletion.Settings) Settings;
         }
 
         void InitTimer()
