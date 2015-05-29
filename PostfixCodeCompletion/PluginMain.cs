@@ -52,7 +52,6 @@ namespace PostfixCodeCompletion
             InitBasics();
             LoadSettings();
             AddEventHandlers();
-            TemplateUtils.Settings = (PostfixCodeCompletion.Settings) Settings;
         }
 
         void InitTimer()
@@ -91,11 +90,13 @@ namespace PostfixCodeCompletion
                     Keys keys = ((KeyEvent) e).Value;
                     if (keys == (Keys.Control | Keys.Space))
                     {
+                        ASResult expr = GetPostfixCompletionExpr();
+                        if (expr == null || expr.IsNull()) return;
                         e.Handled = ASComplete.OnShortcut(keys, PluginBase.MainForm.CurrentDocument.SciControl);
                         if (!CompletionList.Active)
                         {
                             completionList.VisibleChanged -= OnCompletionListVisibleChanged;
-                            UpdateCompletionList();
+                            UpdateCompletionList(GetPostfixCompletionTarget(expr), expr);
                             completionList.VisibleChanged += OnCompletionListVisibleChanged;
                         }
                     }
@@ -125,6 +126,7 @@ namespace PostfixCodeCompletion
             Settings = new Settings();
             if (!File.Exists(settingFilename)) SaveSettings();
             else Settings = (Settings)ObjectSerializer.Deserialize(settingFilename, Settings);
+            TemplateUtils.Settings = (PostfixCodeCompletion.Settings)Settings;
         }
 
         /// <summary>
@@ -146,17 +148,22 @@ namespace PostfixCodeCompletion
 
         void UpdateCompletionList()
         {
-            string templates = TemplateUtils.GetTemplatesDir();
-            if (!Directory.Exists(templates)) return;
             ASResult expr = GetPostfixCompletionExpr();
             MemberModel target = GetPostfixCompletionTarget(expr);
+            UpdateCompletionList(target, expr);
+        }
+
+        void UpdateCompletionList(MemberModel target, ASResult expr)
+        {
+            string templates = TemplateUtils.GetTemplatesDir();
+            if (!Directory.Exists(templates)) return;
             if (target == null) return;
             List<ICompletionListItem> items = GetPostfixCompletionItems(target, expr);
             if (completionList.Visible)
             {
                 completionList.Items.AddRange(items.ToArray());
                 Reflector.CompletionListAllItems().AddRange(items);
-                completionList.Height = (Math.Min(completionList.Items.Count, 10) + 1)*completionList.ItemHeight;
+                completionList.Height = (Math.Min(completionList.Items.Count, 10) + 1) * completionList.ItemHeight;
             }
             else CompletionList.Show(items, false);
             completionListAllItemsCount = Reflector.CompletionListAllItems().Count;
@@ -172,6 +179,7 @@ namespace PostfixCodeCompletion
             for (int i = sci.CurrentPos; i > positionFromLine; i--)
             {
                 char c = (char)sci.CharAt(i);
+                if (c == '<' || c == '>') break;
                 if (c != '.') continue;
                 position = i;
                 break;
