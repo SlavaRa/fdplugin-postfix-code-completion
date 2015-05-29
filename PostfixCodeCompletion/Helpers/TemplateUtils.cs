@@ -22,6 +22,7 @@ namespace PostfixCodeCompletion.Helpers
         internal const string PATTERN_BOOLEAN = "Boolean";
         internal const string PATTERN_NUMBER = "Number";
         internal const string PATTERN_STRING = "String";
+        public static Settings Settings { get; set; }
 
         private static readonly Dictionary<TemplateType, string> TemplateTypeToPattern = new Dictionary<TemplateType, string>()
         {
@@ -89,8 +90,11 @@ namespace PostfixCodeCompletion.Helpers
         {
             var varNameToQualifiedName = GetVarNameToQualifiedName(expr);
             string name = varNameToQualifiedName.Key.ToLower();
+            string type = varNameToQualifiedName.Value;
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
-            template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", varNameToQualifiedName.Value);
+            if (ASContext.Context is HaXeContext.Context && Settings != null && Settings.DisableTypeDeclaration) type = null;
+            if (!string.IsNullOrEmpty(type)) type = MemberModel.FormatType(Reflector.ASGeneratorGetShortType(type));
+            template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", type);
             return template;
         }
 
