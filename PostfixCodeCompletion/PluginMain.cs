@@ -176,13 +176,16 @@ namespace PostfixCodeCompletion
             int currentLine = Reflector.ScintillaControlCurrentLine;
             int positionFromLine = sci.PositionFromLine(currentLine);
             int position = -1;
+            string characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
             for (int i = sci.CurrentPos; i > positionFromLine; i--)
             {
                 char c = (char)sci.CharAt(i);
-                if (c == '<' || c == '>') break;
-                if (c != '.') continue;
-                position = i;
-                break;
+                if (c == '.')
+                {
+                    position = i;
+                    break;
+                }
+                if (c > ' ' && !characters.Contains(c) && c != '$') break;
             }
             if (position == -1) return null;
             position -= positionFromLine;
