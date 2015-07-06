@@ -96,12 +96,24 @@ namespace PostfixCodeCompletion
                         if (!CompletionList.Active)
                         {
                             completionList.VisibleChanged -= OnCompletionListVisibleChanged;
-                            UpdateCompletionList(GetPostfixCompletionTarget(expr), expr);
+                            UpdateCompletionList(expr);
                             completionList.VisibleChanged += OnCompletionListVisibleChanged;
                         }
                     }
                     break;
             }
+        }
+
+        void OnCharAdded(ScintillaControl sender, int value)
+        {
+            if ((char)value != '.') return;
+            ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
+            if (!Reflector.ASCompleteHandleDotCompletion(sci, true) && CompletionList.Active) return;
+            ASResult expr = GetPostfixCompletionExpr();
+            if (expr == null || expr.IsNull()) return;
+            completionList.VisibleChanged -= OnCompletionListVisibleChanged;
+            UpdateCompletionList(expr);
+            completionList.VisibleChanged += OnCompletionListVisibleChanged;
         }
 
         #endregion
@@ -136,6 +148,7 @@ namespace PostfixCodeCompletion
         {
             EventManager.AddEventHandler(this, EventType.UIStarted);
             EventManager.AddEventHandler(this, EventType.Keys, HandlingPriority.High);
+            UITools.Manager.OnCharAdded += OnCharAdded;
         }
 
         /// <summary>
@@ -148,11 +161,12 @@ namespace PostfixCodeCompletion
 
         void UpdateCompletionList()
         {
-            ASResult expr = GetPostfixCompletionExpr();
-            MemberModel target = GetPostfixCompletionTarget(expr);
-            UpdateCompletionList(target, expr);
+            UpdateCompletionList(GetPostfixCompletionExpr());
         }
-
+        void UpdateCompletionList(ASResult expr)
+        {
+            UpdateCompletionList(GetPostfixCompletionTarget(expr), expr);
+        }
         void UpdateCompletionList(MemberModel target, ASResult expr)
         {
             string templates = TemplateUtils.GetTemplatesDir();
