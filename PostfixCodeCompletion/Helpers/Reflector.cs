@@ -18,6 +18,14 @@ namespace PostfixCodeCompletion.Helpers
         }
         #endregion
 
+        #region ASComplete.HandleDotCompletion(sci, autoHide)
+        internal static bool ASCompleteHandleDotCompletion(ScintillaControl sci, bool autoHide)
+        {
+            MethodInfo methodInfo = typeof(ASComplete).GetMethod("HandleDotCompletion", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
+            return (bool)methodInfo.Invoke(null, new object[] { sci, autoHide });
+        }
+        #endregion
+
         #region ASGenerator.CleanType(type)
         internal static string ASGeneratorCleanType(string type)
         {
