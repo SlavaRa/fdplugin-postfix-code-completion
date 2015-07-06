@@ -108,7 +108,7 @@ namespace PostfixCodeCompletion
         {
             if ((char)value != '.') return;
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            if (!Reflector.ASCompleteHandleDotCompletion(sci, true) && CompletionList.Active) return;
+            if (!Reflector.ASCompleteHandleDotCompletion(sci, true) || CompletionList.Active) return;
             ASResult expr = GetPostfixCompletionExpr();
             if (expr == null || expr.IsNull()) return;
             completionList.VisibleChanged -= OnCompletionListVisibleChanged;
