@@ -6,3 +6,7 @@ for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(Collection).length; $(ItmU
 for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < <<$(Number)>>; $(ItmUniqueVar)++) $(CSLB){
 	$(EntryPoint)
 }
+#pcc:int
+for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < <<$(int)>>; $(ItmUniqueVar)++) $(CSLB){
+	$(EntryPoint)
+}
