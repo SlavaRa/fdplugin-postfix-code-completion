@@ -212,6 +212,7 @@ namespace PostfixCodeCompletion
         static List<ICompletionListItem> GetPostfixCompletionItems(MemberModel target, ASResult expr)
         {
             List<ICompletionListItem> result = new List<ICompletionListItem>();
+            result.AddRange(GetCompletionItems(typeof(TPostfixCompletionItem), expr));
             result.AddRange(GetCompletionItems(TemplateType.Member, typeof(PostfixCompletionItem), expr));
             if (GetTargetIsNullable(target)) result.AddRange(GetCompletionItems(TemplateType.Nullable, typeof(NullablePostfixCompletionItem), expr));
             if (GetTargetIsCollection(target)) result.AddRange(GetCompletionItems(TemplateType.Collection, typeof(CollectionPostfixCompletionItem), expr));
@@ -232,7 +233,7 @@ namespace PostfixCodeCompletion
             return result.Distinct().ToList();
         }
 
-        static MemberModel GetPostfixCompletionTarget(ASResult expr)
+        public static MemberModel GetPostfixCompletionTarget(ASResult expr)
         {
             if (expr == null || expr.IsNull()) return null;
             MemberModel member = expr.Member;
@@ -326,14 +327,23 @@ namespace PostfixCodeCompletion
             return target.Type == "String";
         }
 
+        static IEnumerable<ICompletionListItem> GetCompletionItems(Type itemType, ASResult expr)
+        {
+            Dictionary<string, string> templates = TemplateUtils.GetTemplates(GetPostfixCompletionTarget(expr).Type);
+            return GetCompletionItems(templates, itemType, expr);
+        }
         static IEnumerable<ICompletionListItem> GetCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
         {
+            return GetCompletionItems(TemplateUtils.GetTemplates(templateType), itemType, expr);
+        }
+        static IEnumerable<ICompletionListItem> GetCompletionItems(Dictionary<string, string> templates, Type itemType, ASResult expr)
+        {
             List<ICompletionListItem> result = new List<ICompletionListItem>();
-            foreach (KeyValuePair<string, string> pathToTemplate in TemplateUtils.GetTemplates(templateType))
+            foreach (KeyValuePair<string, string> pathToTemplate in templates)
             {
                 string fileName = Path.GetFileNameWithoutExtension(pathToTemplate.Key);
-                ConstructorInfo constructorInfo = itemType.GetConstructor(new[] {typeof (string), typeof (string), typeof (ASResult)});
-                result.Add((PostfixCompletionItem) constructorInfo.Invoke(new object[] {fileName, pathToTemplate.Value, expr}));
+                ConstructorInfo constructorInfo = itemType.GetConstructor(new[] { typeof(string), typeof(string), typeof(ASResult) });
+                result.Add((PostfixCompletionItem)constructorInfo.Invoke(new object[] { fileName, pathToTemplate.Value, expr }));
             }
             return result;
         }
@@ -360,13 +370,13 @@ namespace PostfixCodeCompletion
     class PostfixCompletionItem : ICompletionListItem
     {
         readonly string template;
-        readonly ASResult expr;
+        protected readonly ASResult Expr;
 
         public PostfixCompletionItem(string label, string template, ASResult expr)
         {
             Label = label;
             this.template = template;
-            this.expr = expr;
+            this.Expr = expr;
         }
 
         public string Label { get; private set; }
@@ -387,10 +397,13 @@ namespace PostfixCodeCompletion
                 }
                 sci.SetSel(position, sci.CurrentPos);
                 sci.ReplaceSel(string.Empty);
-                position = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
+                position = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, Expr);
                 sci.SetSel(position, sci.CurrentPos);
-                string snippet = Regex.Replace(template, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-                snippet = TemplateUtils.ProcessMemberTemplate(snippet, expr);
+                var pattern = this is TPostfixCompletionItem
+                        ? string.Format(TemplateUtils.PATTERN_T_BLOCK, Pattern)
+                        : string.Format(TemplateUtils.PATTERN_BLOCK, Pattern);
+                string snippet = Regex.Replace(template, pattern, sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                snippet = TemplateUtils.ProcessMemberTemplate(snippet, Expr);
                 snippet = ArgsProcessor.ProcessCodeStyleLineBreaks(snippet);
                 sci.ReplaceSel(string.Empty);
                 SnippetHelper.InsertSnippetText(sci, position, snippet);
@@ -419,13 +432,16 @@ namespace PostfixCodeCompletion
                         dotPosition = i;
                         break;
                     }
-                    int exprStartPosition = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
+                    int exprStartPosition = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, Expr);
                     int lineNum = Reflector.ScintillaControlCurrentLine;
                     string line = sci.GetLine(lineNum);
                     string snippet = line.Substring(exprStartPosition - sci.PositionFromLine(lineNum), dotPosition - exprStartPosition);
                     description = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
-                    description = Regex.Replace(description, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), snippet, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-                    description = TemplateUtils.ProcessMemberTemplate(description, expr);
+                    var pattern = this is TPostfixCompletionItem
+                        ? string.Format(TemplateUtils.PATTERN_T_BLOCK, Pattern)
+                        : string.Format(TemplateUtils.PATTERN_BLOCK, Pattern);
+                    description = Regex.Replace(description, pattern, snippet, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                    description = TemplateUtils.ProcessMemberTemplate(description, Expr);
                     description = ArgsProcessor.ProcessCodeStyleLineBreaks(description);
                     description = description.Replace(SnippetHelper.ENTRYPOINT, "|");
                     description = description.Replace(SnippetHelper.EXITPOINT, "|");
@@ -440,12 +456,12 @@ namespace PostfixCodeCompletion
         {
             if (!(obj is PostfixCompletionItem)) return false;
             PostfixCompletionItem other = (PostfixCompletionItem)obj;
-            return other.Label == Label && other.template == template && other.expr == expr;
+            return other.Label == Label && other.template == template && other.Expr == Expr;
         }
 
         public override int GetHashCode()
         {
-            return Label.GetHashCode() ^ template.GetHashCode() ^ expr.GetHashCode();
+            return Label.GetHashCode() ^ template.GetHashCode() ^ Expr.GetHashCode();
         }
     }
 
@@ -503,5 +519,14 @@ namespace PostfixCodeCompletion
         }
 
         public override string Pattern { get { return TemplateUtils.PATTERN_STRING; } }
+    }
+
+    class TPostfixCompletionItem : PostfixCompletionItem
+    {
+        public TPostfixCompletionItem(string label, string template, ASResult expr) : base(label, template, expr)
+        {
+        }
+
+        public override string Pattern { get { return PluginMain.GetPostfixCompletionTarget(Expr).Type; }}
     }
 }
