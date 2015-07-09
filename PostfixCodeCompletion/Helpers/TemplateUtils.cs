@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
+using HaXeContext;
 using PluginCore;
 using PluginCore.Helpers;
 
@@ -12,6 +15,7 @@ namespace PostfixCodeCompletion.Helpers
     static class TemplateUtils
     {
         public const string PATTERN_BLOCK = @"\$\([^\)]*{0}.*?\)";
+        public const string PATTERN_T_BLOCK = @"<<[^\$]*?\$\({0}\).*?>>";
         internal const string POSTFIX_GENERATORS = "PostfixGenerators";
         internal const string PATTERN_MEMBER = "Member";
         internal const string PATTERN_NULLABLE = "Nullable";
@@ -24,7 +28,7 @@ namespace PostfixCodeCompletion.Helpers
         internal const string PATTERN_STRING = "String";
         public static Settings Settings { get; set; }
 
-        private static readonly Dictionary<TemplateType, string> TemplateTypeToPattern = new Dictionary<TemplateType, string>()
+        static readonly Dictionary<TemplateType, string> TemplateTypeToPattern = new Dictionary<TemplateType, string>()
         {
             {TemplateType.Member, PATTERN_MEMBER},
             {TemplateType.Nullable, PATTERN_NULLABLE},
@@ -41,28 +45,44 @@ namespace PostfixCodeCompletion.Helpers
             string path = Path.Combine(PathHelper.SnippetDir, lang);
             return Path.Combine(path, POSTFIX_GENERATORS);
         }
-
-        internal static Dictionary<string, string> GetTemplates()
+        
+        internal static Dictionary<string, string> GetTemplates(string type)
         {
-            return GetTemplates(TemplateType.Any);
-        }
-        internal static Dictionary<string, string> GetTemplates(TemplateType type)
-        {
+            string pattern = Enum.GetNames(typeof(TemplateType)).Contains(type)
+                ? string.Format(PATTERN_BLOCK, type)
+                : string.Format(PATTERN_T_BLOCK, type);
             Dictionary<string, string> result = new Dictionary<string, string>();
             foreach (string file in Directory.GetFiles(GetTemplatesDir(), "*.fds"))
             {
-                string content;
-                using (StreamReader reader = new StreamReader(File.OpenRead(file)))
+                string content = GetFileContent(file);
+                string marker = "#pcc:" + type;
+                int startIndex = content.IndexOf(marker, StringComparison.Ordinal);
+                if (startIndex != -1)
                 {
-                    content = reader.ReadToEnd();
-                    reader.Close();
+                    startIndex += marker.Length;
+                    content = content.Remove(0, startIndex);
                 }
-                if (type == TemplateType.Any
-                    || !TemplateTypeToPattern.ContainsKey(type)
-                    || !Regex.IsMatch(content, string.Format(PATTERN_BLOCK, TemplateTypeToPattern[type]), RegexOptions.IgnoreCase | RegexOptions.Multiline)) continue;
+                startIndex = content.IndexOf("#pcc:", StringComparison.Ordinal);
+                if (startIndex != -1) content = content.Remove(startIndex);
+                if (!Regex.IsMatch(content, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline)) continue;
                 result.Add(file, string.Format("{0}{1}{0}", SnippetHelper.BOUNDARY, content.Replace("\r\n", "\n")));
             }
             return result;
+        }
+        internal static Dictionary<string, string> GetTemplates(TemplateType type)
+        {
+            return GetTemplates(TemplateTypeToPattern[type]);
+        }
+
+        static string GetFileContent(string file)
+        {
+            string content;
+            using (StreamReader reader = new StreamReader(File.OpenRead(file)))
+            {
+                content = reader.ReadToEnd();
+                reader.Close();
+            }
+            return content;
         }
 
         internal static KeyValuePair<string, string> GetVarNameToQualifiedName(ASResult expr)
@@ -92,7 +112,7 @@ namespace PostfixCodeCompletion.Helpers
             string name = varNameToQualifiedName.Key.ToLower();
             string type = varNameToQualifiedName.Value;
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
-            if (ASContext.Context is HaXeContext.Context && Settings != null && Settings.DisableTypeDeclaration) type = null;
+            if (ASContext.Context is Context && Settings != null && Settings.DisableTypeDeclaration) type = null;
             if (!string.IsNullOrEmpty(type)) type = MemberModel.FormatType(Reflector.ASGeneratorGetShortType(type));
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", type);
             return template;
@@ -133,11 +153,11 @@ namespace PostfixCodeCompletion.Helpers
             }
             return template;
         }
+
     }
 
     enum TemplateType
     {
-        Any,
         Member,
         Nullable,
         Collection,
