@@ -18,6 +18,14 @@ namespace PostfixCodeCompletion.Helpers
         }
         #endregion
 
+        #region ASComplete.HandleDotCompletion(sci, autoHide)
+        internal static bool ASCompleteHandleDotCompletion(ScintillaControl sci, bool autoHide)
+        {
+            MethodInfo methodInfo = typeof(ASComplete).GetMethod("HandleDotCompletion", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
+            return (bool)methodInfo.Invoke(null, new object[] { sci, autoHide });
+        }
+        #endregion
+
         #region ASGenerator.CleanType(type)
         internal static string ASGeneratorCleanType(string type)
         {
@@ -29,7 +37,6 @@ namespace PostfixCodeCompletion.Helpers
         #region ASGenerator.GuessVarName(type)
         internal static string ASGeneratorGuessVarName(string name, string type)
         {
-
             MethodInfo methodInfo = typeof(ASGenerator).GetMethod("GuessVarName", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
             return (string)methodInfo.Invoke(null, new object[] { name, type });
         }
@@ -54,7 +61,7 @@ namespace PostfixCodeCompletion.Helpers
         }
         #endregion
 
-        #region ScintillaControl.CurrentLine 
+        #region ScintillaControl.CurrentLine
         /// <summary>
         /// For 4.7.2 only, for 5.0+ please use sci.CurrentLine
         /// </summary>
