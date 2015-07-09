@@ -1,3 +1,7 @@
 for (var $(ItmUniqueVar):int = $(Collection).length - 1; $(ItmUniqueVar) >= 0; $(ItmUniqueVar)--) $(CSLB){
     $(EntryPoint)
 }
+#pcc:Number
+for (var $(ItmUniqueVar):int = $(Number); $(ItmUniqueVar) >= 0; $(ItmUniqueVar)--) $(CSLB){
+    $(EntryPoint)
+}
