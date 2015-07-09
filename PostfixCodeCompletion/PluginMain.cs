@@ -104,18 +104,6 @@ namespace PostfixCodeCompletion
             }
         }
 
-        void OnCharAdded(ScintillaControl sender, int value)
-        {
-            if ((char)value != '.') return;
-            ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            if (!Reflector.ASCompleteHandleDotCompletion(sci, true) || CompletionList.Active) return;
-            ASResult expr = GetPostfixCompletionExpr();
-            if (expr == null || expr.IsNull()) return;
-            completionList.VisibleChanged -= OnCompletionListVisibleChanged;
-            UpdateCompletionList(expr);
-            completionList.VisibleChanged += OnCompletionListVisibleChanged;
-        }
-
         #endregion
 
         #region Custom Methods
@@ -353,6 +341,18 @@ namespace PostfixCodeCompletion
         #endregion
 
         #region Event Handlers
+
+        void OnCharAdded(ScintillaControl sender, int value)
+        {
+            if ((char)value != '.') return;
+            ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
+            if (!Reflector.ASCompleteHandleDotCompletion(sci, true) || CompletionList.Active) return;
+            ASResult expr = GetPostfixCompletionExpr();
+            if (expr == null || expr.IsNull()) return;
+            completionList.VisibleChanged -= OnCompletionListVisibleChanged;
+            UpdateCompletionList(expr);
+            completionList.VisibleChanged += OnCompletionListVisibleChanged;
+        }
 
         void OnCompletionListVisibleChanged(object o, EventArgs args)
         {
