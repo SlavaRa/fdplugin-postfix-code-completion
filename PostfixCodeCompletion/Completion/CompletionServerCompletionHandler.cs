@@ -89,7 +89,7 @@ namespace PostfixCodeCompletion
         {
             if (e.Data == null) return;
             if (!Regex.IsMatch(e.Data, "Error.*--wait")) return;
-            if (!failure && FallbackNeeded != null)  FallbackNeeded(true);
+            if (!failure && FallbackNeeded != null) FallbackNeeded(true);
             failure = true;
         }
 
