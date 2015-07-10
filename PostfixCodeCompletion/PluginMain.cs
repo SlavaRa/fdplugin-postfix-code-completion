@@ -12,6 +12,7 @@ using ASCompletion.Context;
 using ASCompletion.Model;
 using FlashDevelop;
 using FlashDevelop.Utilities;
+using HaXeContext;
 using PluginCore;
 using PluginCore.Controls;
 using PluginCore.Helpers;
@@ -27,7 +28,7 @@ namespace PostfixCodeCompletion
     {
         string settingFilename;
         static ListBox completionList;
-        static CompilerCompletionHandler completionModeHandler;
+        static IHaxeCompletionHandler completionModeHandler;
 
         #region Required Properties
 
@@ -97,6 +98,18 @@ namespace PostfixCodeCompletion
                     completionList = PluginBase.MainForm.Controls.OfType<ListBox>().FirstOrDefault();
                     completionList.VisibleChanged += OnCompletionListVisibleChanged;
                     break;
+                case EventType.Command:
+                    if (((DataEvent) e).Action == ProjectManager.ProjectManagerEvents.Project)
+                    {
+                        if (PluginBase.CurrentProject == null) return;
+                        Context context = ASContext.GetLanguageContext("haxe") as Context;
+                        if (context != null)
+                        {
+                            ((HaXeSettings)context.Settings).CompletionModeChanged += OnHaxeCompletionModeChanged;
+                            OnHaxeCompletionModeChanged();
+                        }
+                    }
+                    break;
                 case EventType.Keys:
                     Keys keys = ((KeyEvent) e).Value;
                     if (keys == (Keys.Control | Keys.Space))
@@ -113,6 +126,43 @@ namespace PostfixCodeCompletion
                     }
                     break;
             }
+        }
+
+        void OnHaxeCompletionModeChanged()
+        {
+            if (completionModeHandler != null)
+            {
+                completionModeHandler.Stop();
+                completionModeHandler = null;
+            }
+            HaXeSettings settings = (HaXeSettings)((Context) ASContext.GetLanguageContext("haxe")).Settings;
+            switch (settings.CompletionMode)
+            {
+                case HaxeCompletionModeEnum.CompletionServer:
+                    if (settings.CompletionServerPort < 1024) completionModeHandler = new CompilerCompletionHandler(createHaxeProcess(""));
+                    else
+                    {
+                        completionModeHandler = new CompletionServerCompletionHandler(
+                                createHaxeProcess("--wait " + settings.CompletionServerPort),
+                                settings.CompletionServerPort);
+                        ((CompletionServerCompletionHandler) completionModeHandler).FallbackNeeded += OnHaxeContextFallbackNeeded;
+                    }
+                    break;
+                default:
+                    completionModeHandler = new CompilerCompletionHandler(createHaxeProcess(""));
+                    break;
+            }
+        }
+
+        void OnHaxeContextFallbackNeeded(bool notSupported)
+        {
+            TraceManager.AddAsync("This SDK does not support server mode");
+            if (completionModeHandler != null)
+            {
+                completionModeHandler.Stop();
+                completionModeHandler = null;
+            }
+            completionModeHandler = new CompilerCompletionHandler(createHaxeProcess(""));
         }
 
         #endregion
@@ -145,7 +195,7 @@ namespace PostfixCodeCompletion
         /// </summary>
         void AddEventHandlers()
         {
-            EventManager.AddEventHandler(this, EventType.UIStarted);
+            EventManager.AddEventHandler(this, EventType.UIStarted | EventType.Command);
             EventManager.AddEventHandler(this, EventType.Keys, HandlingPriority.High);
             UITools.Manager.OnCharAdded += OnCharAdded;
         }
@@ -172,12 +222,10 @@ namespace PostfixCodeCompletion
                 UpdateCompletionList(target, expr);
                 return;
             }
+            if (completionModeHandler == null) return;
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            if (sci.ConfigurationLanguage.ToLower() != "haxe" || expr.Context == null ||
-                sci.CharAt(expr.Context.Position) != '.')
+            if (sci.ConfigurationLanguage.ToLower() != "haxe" || expr.Context == null || sci.CharAt(expr.Context.Position) != '.')
                 return;
-            if (completionModeHandler == null)
-                completionModeHandler = new CompilerCompletionHandler(createHaxeProcess(""));
             HaxeComplete hc = new HaxeComplete(sci, expr, false, completionModeHandler, HaxeCompilerService.TYPE);
             hc.GetPositionType(OnFunctionTypeResult);
         }
@@ -413,10 +461,8 @@ namespace PostfixCodeCompletion
             foreach (KeyValuePair<string, string> pathToTemplate in templates)
             {
                 string fileName = Path.GetFileNameWithoutExtension(pathToTemplate.Key);
-                ConstructorInfo constructorInfo =
-                    itemType.GetConstructor(new[] {typeof (string), typeof (string), typeof (ASResult)});
-                result.Add(
-                    (PostfixCompletionItem) constructorInfo.Invoke(new object[] {fileName, pathToTemplate.Value, expr}));
+                ConstructorInfo constructorInfo = itemType.GetConstructor(new[] {typeof (string), typeof (string), typeof (ASResult)});
+                result.Add((PostfixCompletionItem) constructorInfo.Invoke(new object[] {fileName, pathToTemplate.Value, expr}));
             }
             return result;
         }
