@@ -442,20 +442,17 @@ namespace PostfixCodeCompletion
             return GetCompletionItems(itemType, GetPostfixCompletionTarget(expr), expr);
         }
 
-        static IEnumerable<ICompletionListItem> GetCompletionItems(Type itemType, MemberModel target,
-            ASResult expr)
+        static IEnumerable<ICompletionListItem> GetCompletionItems(Type itemType, MemberModel target, ASResult expr)
         {
             return GetCompletionItems(TemplateUtils.GetTemplates(target.Type), itemType, expr);
         }
 
-        static IEnumerable<ICompletionListItem> GetCompletionItems(TemplateType templateType, Type itemType,
-            ASResult expr)
+        static IEnumerable<ICompletionListItem> GetCompletionItems(TemplateType templateType, Type itemType, ASResult expr)
         {
             return GetCompletionItems(TemplateUtils.GetTemplates(templateType), itemType, expr);
         }
 
-        static IEnumerable<ICompletionListItem> GetCompletionItems(Dictionary<string, string> templates,
-            Type itemType, ASResult expr)
+        static IEnumerable<ICompletionListItem> GetCompletionItems(Dictionary<string, string> templates, Type itemType, ASResult expr)
         {
             List<ICompletionListItem> result = new List<ICompletionListItem>();
             foreach (KeyValuePair<string, string> pathToTemplate in templates)

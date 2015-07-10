@@ -67,6 +67,7 @@ namespace PostfixCodeCompletion
                 Sci.SetSel(pos, pos);
                 Sci.ReplaceSel(selText);
             }
+            PluginBase.MainForm.CallCommand("Save", null);
             result = new HaxeCompleteResult();
             ThreadPool.QueueUserWorkItem(_ =>
             {
