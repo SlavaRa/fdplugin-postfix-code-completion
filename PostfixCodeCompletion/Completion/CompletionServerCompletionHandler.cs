@@ -33,6 +33,9 @@ namespace PostfixCodeCompletion
             catch { return false; }
         }
 
+        /// <summary>
+        /// Allows an object to try to free resources and perform other cleanup operations before it is reclaimed by garbage collection.
+        /// </summary>
         ~CompletionServerCompletionHandler()
         {
             Stop();
@@ -40,14 +43,13 @@ namespace PostfixCodeCompletion
 
         public string GetCompletion(string[] args)
         {
-            if (args == null || haxeProcess == null)
-                return string.Empty;
+            if (args == null || haxeProcess == null) return string.Empty;
             if (!IsRunning()) StartServer();
             try
             {
                 var client = new TcpClient("127.0.0.1", port);
                 var writer = new StreamWriter(client.GetStream());
-                writer.WriteLine("--cwd " + (PluginBase.CurrentProject as HaxeProject).Directory);
+                writer.WriteLine("--cwd " + ((HaxeProject) PluginBase.CurrentProject).Directory);
                 foreach (var arg in args)
                     writer.WriteLine(arg);
                 writer.Write("\0");
@@ -60,8 +62,7 @@ namespace PostfixCodeCompletion
             catch(Exception ex)
             {
                 TraceManager.AddAsync(ex.Message);
-                if (!failure && FallbackNeeded != null)
-                    FallbackNeeded(false);
+                if (!failure && FallbackNeeded != null) FallbackNeeded(false);
                 failure = true;
                 return string.Empty;
             }
@@ -71,17 +72,15 @@ namespace PostfixCodeCompletion
         {
             if (haxeProcess == null || IsRunning()) return;
             haxeProcess.Start();
-            if (!listening)
-            {
-                listening = true;
-                haxeProcess.BeginOutputReadLine();
-                haxeProcess.BeginErrorReadLine();
-                haxeProcess.OutputDataReceived += new DataReceivedEventHandler(haxeProcess_OutputDataReceived);
-                haxeProcess.ErrorDataReceived += new DataReceivedEventHandler(haxeProcess_ErrorDataReceived);
-            }
+            if (listening) return;
+            listening = true;
+            haxeProcess.BeginOutputReadLine();
+            haxeProcess.BeginErrorReadLine();
+            haxeProcess.OutputDataReceived += haxeProcess_OutputDataReceived;
+            haxeProcess.ErrorDataReceived += haxeProcess_ErrorDataReceived;
         }
 
-        void haxeProcess_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        static void haxeProcess_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             TraceManager.AddAsync(e.Data, 2);
         }
@@ -89,18 +88,14 @@ namespace PostfixCodeCompletion
         void haxeProcess_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data == null) return;
-            if (Regex.IsMatch(e.Data, "Error.*--wait"))
-            {
-                if (!failure && FallbackNeeded != null) 
-                    FallbackNeeded(true);
-                failure = true;
-            }
+            if (!Regex.IsMatch(e.Data, "Error.*--wait")) return;
+            if (!failure && FallbackNeeded != null)  FallbackNeeded(true);
+            failure = true;
         }
 
         public void Stop()
         {
-            if (IsRunning())
-                haxeProcess.Kill();
+            if (IsRunning())haxeProcess.Kill();
         }
     }
 }
