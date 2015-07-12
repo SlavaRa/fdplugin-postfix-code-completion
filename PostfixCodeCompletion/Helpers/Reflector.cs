@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
+using System.Windows.Forms;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using PluginCore;
@@ -10,11 +11,19 @@ namespace PostfixCodeCompletion.Helpers
 {
     static class Reflector
     {
-        #region CompletionList.allItems.AddRange(items);
+        #region CompletionList.completionList
+        internal static ListBox CompletionListCompletionList()
+        {
+            FieldInfo member = typeof(CompletionList).GetField("completionList", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
+            return (ListBox)member.GetValue(typeof(ListBox));
+        }
+        #endregion
+
+        #region CompletionList.allItems
         internal static List<ICompletionListItem> CompletionListAllItems()
         {
             FieldInfo member = typeof(CompletionList).GetField("allItems", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-            return ((List<ICompletionListItem>) member.GetValue(typeof (List<ICompletionListItem>)));
+            return (List<ICompletionListItem>) member.GetValue(typeof (List<ICompletionListItem>));
         }
         #endregion
 
