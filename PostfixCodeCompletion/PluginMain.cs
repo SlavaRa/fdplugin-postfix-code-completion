@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using ASCompletion;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
@@ -83,13 +84,10 @@ namespace PostfixCodeCompletion
                 case EventType.Command:
                     if (((DataEvent) e).Action == ProjectManager.ProjectManagerEvents.Project)
                     {
-                        if (PluginBase.CurrentProject == null) return;
-                        Context context = ASContext.Context as Context;
-                        if (context != null)
-                        {
-                            ((HaXeSettings)context.Settings).CompletionModeChanged += OnHaxeCompletionModeChanged;
-                            OnHaxeCompletionModeChanged();
-                        }
+                        if (!(PluginBase.CurrentProject is HaxeProject)) return;
+                        Context context = (Context) ASContext.GetLanguageContext("haxe");
+                        ((HaXeSettings)context.Settings).CompletionModeChanged += OnHaxeCompletionModeChanged;
+                        OnHaxeCompletionModeChanged();
                     }
                     break;
                 case EventType.Keys:
@@ -108,46 +106,6 @@ namespace PostfixCodeCompletion
                     }
                     break;
             }
-        }
-
-        void OnHaxeCompletionModeChanged()
-        {
-            if (completionModeHandler != null)
-            {
-                completionModeHandler.Stop();
-                completionModeHandler = null;
-            }
-            if (!(PluginBase.CurrentProject is HaxeProject)) return;
-            Context context = ASContext.Context as Context;
-            if (context == null) return;
-            HaXeSettings settings = (HaXeSettings)context.Settings;
-            switch (settings.CompletionMode)
-            {
-                case HaxeCompletionModeEnum.CompletionServer:
-                    if (settings.CompletionServerPort < 1024) completionModeHandler = new CompilerCompletionHandler(createHaxeProcess(""));
-                    else
-                    {
-                        completionModeHandler = new CompletionServerCompletionHandler(
-                                createHaxeProcess("--wait " + settings.CompletionServerPort),
-                                settings.CompletionServerPort);
-                        ((CompletionServerCompletionHandler) completionModeHandler).FallbackNeeded += OnHaxeContextFallbackNeeded;
-                    }
-                    break;
-                default:
-                    completionModeHandler = new CompilerCompletionHandler(createHaxeProcess(""));
-                    break;
-            }
-        }
-
-        void OnHaxeContextFallbackNeeded(bool notSupported)
-        {
-            TraceManager.AddAsync("This SDK does not support server mode");
-            if (completionModeHandler != null)
-            {
-                completionModeHandler.Stop();
-                completionModeHandler = null;
-            }
-            completionModeHandler = new CompilerCompletionHandler(createHaxeProcess(""));
         }
 
         #endregion
@@ -443,12 +401,29 @@ namespace PostfixCodeCompletion
 
         static IEnumerable<ICompletionListItem> GetCompletionItems(Dictionary<string, string> templates, Type itemType, ASResult expr)
         {
+            ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
+            Bitmap itemIcon = null;
+            bool haxeStringCode = false;
+            bool isHaxe = sci.ConfigurationLanguage.ToLower() == "haxe";
+            if (isHaxe && GetPostfixCompletionTarget(expr).Type == "String")
+            {
+                int pos = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
+                haxeStringCode = sci.CharAt(pos) == '"' && sci.CharAt(pos + 1) != '\\' && sci.CharAt(pos + 2) == '"';
+                if (haxeStringCode) itemIcon = (Bitmap) ASContext.Panel.GetIcon(PluginUI.ICON_PROPERTY);
+            }
             List<ICompletionListItem> result = new List<ICompletionListItem>();
             foreach (KeyValuePair<string, string> pathToTemplate in templates)
             {
                 string fileName = Path.GetFileNameWithoutExtension(pathToTemplate.Key);
+                if (isHaxe && fileName == "code" && !haxeStringCode) continue;
                 ConstructorInfo constructorInfo = itemType.GetConstructor(new[] {typeof (string), typeof (string), typeof (ASResult)});
-                result.Add((PostfixCompletionItem) constructorInfo.Invoke(new object[] {fileName, pathToTemplate.Value, expr}));
+                PostfixCompletionItem item = (PostfixCompletionItem) constructorInfo.Invoke(new object[] {fileName, pathToTemplate.Value, expr});
+                if (isHaxe && fileName == "code" && itemIcon != null)
+                {
+                    item.Icon = itemIcon;
+                    itemIcon = null;
+                }
+                result.Add(item);
             }
             return result;
         }
@@ -507,6 +482,44 @@ namespace PostfixCodeCompletion
             if (completionListItemCount != Reflector.CompletionListCompletionList().Items.Count) UpdateCompletionList();
         }
 
+        static void OnHaxeCompletionModeChanged()
+        {
+            if (completionModeHandler != null)
+            {
+                completionModeHandler.Stop();
+                completionModeHandler = null;
+            }
+            if (!(PluginBase.CurrentProject is HaxeProject)) return;
+            HaXeSettings settings = (HaXeSettings)((Context) ASContext.GetLanguageContext("haxe")).Settings;
+            switch (settings.CompletionMode)
+            {
+                case HaxeCompletionModeEnum.CompletionServer:
+                    if (settings.CompletionServerPort < 1024) completionModeHandler = new CompilerCompletionHandler(createHaxeProcess(""));
+                    else
+                    {
+                        completionModeHandler = new CompletionServerCompletionHandler(
+                                createHaxeProcess("--wait " + settings.CompletionServerPort),
+                                settings.CompletionServerPort);
+                        ((CompletionServerCompletionHandler)completionModeHandler).FallbackNeeded += OnHaxeContextFallbackNeeded;
+                    }
+                    break;
+                default:
+                    completionModeHandler = new CompilerCompletionHandler(createHaxeProcess(""));
+                    break;
+            }
+        }
+
+        static void OnHaxeContextFallbackNeeded(bool notSupported)
+        {
+            TraceManager.AddAsync("This SDK does not support server mode");
+            if (completionModeHandler != null)
+            {
+                completionModeHandler.Stop();
+                completionModeHandler = null;
+            }
+            completionModeHandler = new CompilerCompletionHandler(createHaxeProcess(""));
+        }
+
         #endregion
     }
 
@@ -558,6 +571,7 @@ namespace PostfixCodeCompletion
         public Bitmap Icon
         {
             get { return icon ?? (icon = (Bitmap) Globals.MainForm.FindImage("341")); }
+            set { icon = value; }
         }
 
         string description;
@@ -595,6 +609,13 @@ namespace PostfixCodeCompletion
 
         public new string ToString() { return Description; }
 
+        /// <summary>
+        /// Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>.
+        /// </summary>
+        /// <returns>
+        /// true if the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>; otherwise, false.
+        /// </returns>
+        /// <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:System.Object"/>. </param><filterpriority>2</filterpriority>
         public override bool Equals(object obj)
         {
             if (!(obj is PostfixCompletionItem)) return false;
@@ -602,6 +623,13 @@ namespace PostfixCodeCompletion
             return other.Label == Label && other.Expr == Expr;
         }
 
+        /// <summary>
+        /// Serves as a hash function for a particular type. 
+        /// </summary>
+        /// <returns>
+        /// A hash code for the current <see cref="T:System.Object"/>.
+        /// </returns>
+        /// <filterpriority>2</filterpriority>
         public override int GetHashCode()
         {
             return Label.GetHashCode() ^ Expr.GetHashCode();
