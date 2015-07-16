@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using ASCompletion.Completion;
 using ASCompletion.Context;
@@ -28,15 +27,15 @@ namespace PostfixCodeCompletion.Helpers
         internal const string PATTERN_STRING = "String";
         public static Settings Settings { get; set; }
 
-        static readonly Dictionary<TemplateType, string> TemplateTypeToPattern = new Dictionary<TemplateType, string>()
+        static readonly List<string> Templates = new List<string>
         {
-            {TemplateType.Member, PATTERN_MEMBER},
-            {TemplateType.Nullable, PATTERN_NULLABLE},
-            {TemplateType.Collection, PATTERN_COLLECTION},
-            {TemplateType.Hash, PATTERN_COLLECTION_OR_HASH},
-            {TemplateType.Boolean, PATTERN_BOOLEAN},
-            {TemplateType.Number, PATTERN_NUMBER},
-            {TemplateType.String, PATTERN_STRING}
+            PATTERN_MEMBER,
+            PATTERN_NULLABLE,
+            PATTERN_COLLECTION,
+            PATTERN_COLLECTION_OR_HASH,
+            PATTERN_BOOLEAN,
+            PATTERN_NUMBER,
+            PATTERN_STRING
         };
 
         internal static string GetTemplatesDir()
@@ -48,9 +47,7 @@ namespace PostfixCodeCompletion.Helpers
         
         internal static Dictionary<string, string> GetTemplates(string type)
         {
-            string pattern = Enum.GetNames(typeof(TemplateType)).Contains(type)
-                ? string.Format(PATTERN_BLOCK, type)
-                : string.Format(PATTERN_T_BLOCK, type);
+            string pattern = Templates.Contains(type) ? string.Format(PATTERN_BLOCK, type) : string.Format(PATTERN_T_BLOCK, type);
             Dictionary<string, string> result = new Dictionary<string, string>();
             foreach (string file in Directory.GetFiles(GetTemplatesDir(), "*.fds"))
             {
@@ -68,10 +65,6 @@ namespace PostfixCodeCompletion.Helpers
                 result.Add(file, string.Format("{0}{1}{0}", SnippetHelper.BOUNDARY, content.Replace("\r\n", "\n")));
             }
             return result;
-        }
-        internal static Dictionary<string, string> GetTemplates(TemplateType type)
-        {
-            return GetTemplates(TemplateTypeToPattern[type]);
         }
 
         static string GetFileContent(string file)
@@ -154,16 +147,5 @@ namespace PostfixCodeCompletion.Helpers
             return template;
         }
 
-    }
-
-    enum TemplateType
-    {
-        Member,
-        Nullable,
-        Collection,
-        Hash,
-        Boolean,
-        Number,
-        String
     }
 }
