@@ -454,6 +454,7 @@ namespace PostfixCodeCompletion
                 if (Reflector.CompletionListCompletionList().Visible) UpdateCompletionList();
                 return;
             }
+            if (!Directory.Exists(TemplateUtils.GetTemplatesDir())) return;
             if (!Reflector.ASCompleteHandleDotCompletion(sci, true) || CompletionList.Active) return;
             ASResult expr = GetPostfixCompletionExpr();
             if (expr == null || expr.IsNull()) return;
@@ -546,13 +547,13 @@ namespace PostfixCodeCompletion
     class PostfixCompletionItem : ICompletionListItem
     {
         readonly string template;
-        protected readonly ASResult Expr;
+        readonly ASResult expr;
 
         public PostfixCompletionItem(string label, string template, ASResult expr)
         {
             Label = label;
             this.template = template;
-            Expr = expr;
+            this.expr = expr;
         }
 
         public string Label { get; private set; }
@@ -572,10 +573,10 @@ namespace PostfixCodeCompletion
                 int position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
                 sci.SetSel(position, sci.CurrentPos);
                 sci.ReplaceSel(string.Empty);
-                position = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, Expr);
+                position = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
                 sci.SetSel(position, sci.CurrentPos);
                 string snippet = Regex.Replace(template, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-                snippet = TemplateUtils.ProcessMemberTemplate(snippet, Expr);
+                snippet = TemplateUtils.ProcessMemberTemplate(snippet, expr);
                 snippet = ArgsProcessor.ProcessCodeStyleLineBreaks(snippet);
                 sci.ReplaceSel(string.Empty);
                 SnippetHelper.InsertSnippetText(sci, position, snippet);
@@ -599,13 +600,13 @@ namespace PostfixCodeCompletion
                 {
                     ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
                     int position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
-                    int exprStartPosition = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, Expr);
+                    int exprStartPosition = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
                     int lineNum = Reflector.ScintillaControlCurrentLine;
                     string line = sci.GetLine(lineNum);
                     string snippet = line.Substring(exprStartPosition - sci.PositionFromLine(lineNum), position - exprStartPosition);
                     description = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
                     description = Regex.Replace(description, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), snippet, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-                    description = TemplateUtils.ProcessMemberTemplate(description, Expr);
+                    description = TemplateUtils.ProcessMemberTemplate(description, expr);
                     description = ArgsProcessor.ProcessCodeStyleLineBreaks(description);
                     description = description.Replace(SnippetHelper.ENTRYPOINT, "|");
                     description = description.Replace(SnippetHelper.EXITPOINT, "|");
@@ -627,7 +628,7 @@ namespace PostfixCodeCompletion
         {
             if (!(obj is PostfixCompletionItem)) return false;
             PostfixCompletionItem other = (PostfixCompletionItem)obj;
-            return other.Label == Label && other.Expr == Expr;
+            return other.Label == Label && other.expr == expr;
         }
 
         /// <summary>
@@ -639,7 +640,7 @@ namespace PostfixCodeCompletion
         /// <filterpriority>2</filterpriority>
         public override int GetHashCode()
         {
-            return Label.GetHashCode() ^ Expr.GetHashCode();
+            return Label.GetHashCode() ^ expr.GetHashCode();
         }
     }
 }
