@@ -68,5 +68,16 @@ namespace PostfixCodeCompletion.Helpers
             }
             return position;
         }
+
+        internal static int GetDotLeftStartPosition(ScintillaControl sci, int position)
+        {
+            for (int i = sci.CurrentPos; i > 0; i--)
+            {
+                if ((char)sci.CharAt(i) != '.') continue;
+                position = i;
+                break;
+            }
+            return position;
+        }
     }
 }
