@@ -4,10 +4,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using ASCompletion;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
@@ -20,8 +18,10 @@ using PluginCore.Helpers;
 using PluginCore.Managers;
 using PluginCore.Utilities;
 using PostfixCodeCompletion.Helpers;
+using ProjectManager;
 using ProjectManager.Projects.Haxe;
 using ScintillaNet;
+using PluginUI = ASCompletion.PluginUI;
 using TemplateUtils = PostfixCodeCompletion.Helpers.TemplateUtils;
 
 namespace PostfixCodeCompletion
@@ -82,7 +82,7 @@ namespace PostfixCodeCompletion
                     Reflector.CompletionListCompletionList().VisibleChanged += OnCompletionListVisibleChanged;
                     break;
                 case EventType.Command:
-                    if (((DataEvent) e).Action == ProjectManager.ProjectManagerEvents.Project)
+                    if (((DataEvent) e).Action == ProjectManagerEvents.Project)
                     {
                         if (!(PluginBase.CurrentProject is HaxeProject)) return;
                         Context context = (Context) ASContext.GetLanguageContext("haxe");
@@ -202,8 +202,7 @@ namespace PostfixCodeCompletion
             int currentLine = Reflector.ScintillaControlCurrentLine;
             int positionFromLine = sci.PositionFromLine(currentLine);
             int position = -1;
-            string characters =
-                ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
+            string characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
             for (int i = sci.CurrentPos; i > positionFromLine; i--)
             {
                 char c = (char) sci.CharAt(i);
@@ -484,6 +483,8 @@ namespace PostfixCodeCompletion
             }
             if (!(PluginBase.CurrentProject is HaxeProject)) return;
             HaXeSettings settings = (HaXeSettings)((Context) ASContext.GetLanguageContext("haxe")).Settings;
+            InstalledSDK currentSDK = settings.InstalledSDKs.FirstOrDefault(sdk => sdk.Path == PluginBase.CurrentProject.CurrentSDK);
+            if (currentSDK == null || !new SemVer("3.1.3").IsOlderThan(new SemVer(currentSDK.Version))) return;
             switch (settings.CompletionMode)
             {
                 case HaxeCompletionModeEnum.CompletionServer:
