@@ -242,17 +242,11 @@ namespace PostfixCodeCompletion
             else if (expr.Type != null) result.AddRange(GetCompletionItems(expr.Type.Type, target, expr));
             result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_MEMBER, expr));
             if (GetTargetIsNullable(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NULLABLE, expr));
-            }
             if (GetTargetIsCollection(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
-            }
             if (GetTargetIsHash(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION_OR_HASH, expr));
-            }
             if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower() == "haxe")
             {
                 ClassModel type = expr.Type != null && !string.IsNullOrEmpty(expr.Type.Type) &&
@@ -262,27 +256,17 @@ namespace PostfixCodeCompletion
                 if (type != null)
                 {
                     if (GetTargetIsCollection(type))
-                    {
                         result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
-                    }
                     if (GetTargetIsHash(type))
-                    {
                         result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION_OR_HASH, expr));
-                    }
                 }
             }
             if (GetTargetIsBoolean(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_BOOLEAN, expr));
-            }
             if (GetTargetIsNumber(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NUMBER, expr));
-            }
             if (GetTargetIsString(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_STRING, expr));
-            }
             return result.Distinct().ToList();
         }
 
@@ -318,21 +302,14 @@ namespace PostfixCodeCompletion
                     string type = target.Type;
                     return type == ASContext.Context.Features.objectKey || type == "Dictionary";
                 case "haxe":
-                    Func<MemberModel, bool> isIteratorOrIterable = m =>
-                    {
-                        string cleanType = Reflector.ASGeneratorCleanType(m.Type);
-                        return cleanType == "Iterator" || cleanType == "Iterable";
-                    };
-                    if (isIteratorOrIterable(target)) return true;
+                    if (IsIteratorOrIterable(target)) return true;
                     if (target is ClassModel)
                     {
                         ClassModel classModel = target as ClassModel;
                         while (classModel != null && !classModel.IsVoid())
                         {
-                            if (classModel.Members.Cast<MemberModel>().Any(member => isIteratorOrIterable(member)))
-                            {
+                            if (classModel.Members.Cast<MemberModel>().Any(IsIteratorOrIterable))
                                 return true;
-                            }
                             classModel.ResolveExtends();
                             classModel = classModel.Extends;
                         }
@@ -340,6 +317,12 @@ namespace PostfixCodeCompletion
                     break;
             }
             return false;
+        }
+
+        static bool IsIteratorOrIterable(MemberModel member)
+        {
+            string cleanType = Reflector.ASGeneratorCleanType(member.Type);
+            return cleanType == "Iterator" || cleanType == "Iterable";
         }
 
         static bool GetTargetIsBoolean(MemberModel target)
