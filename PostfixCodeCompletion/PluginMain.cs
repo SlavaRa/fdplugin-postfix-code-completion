@@ -199,7 +199,7 @@ namespace PostfixCodeCompletion
         static ASResult GetPostfixCompletionExpr()
         {
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            int currentLine = Reflector.ScintillaControlCurrentLine;
+            int currentLine = sci.CurrentLine;
             int positionFromLine = sci.PositionFromLine(currentLine);
             int position = -1;
             string characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
@@ -602,7 +602,7 @@ namespace PostfixCodeCompletion
                     ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
                     int position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
                     int exprStartPosition = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
-                    int lineNum = Reflector.ScintillaControlCurrentLine;
+                    int lineNum = sci.CurrentLine;
                     string line = sci.GetLine(lineNum);
                     string snippet = line.Substring(exprStartPosition - sci.PositionFromLine(lineNum), position - exprStartPosition);
                     description = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
