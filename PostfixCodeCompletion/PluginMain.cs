@@ -176,8 +176,7 @@ namespace PostfixCodeCompletion
         static void UpdateCompletionList(MemberModel target, ASResult expr)
         {
             if (target == null) return;
-            string templates = TemplateUtils.GetTemplatesDir();
-            if (!Directory.Exists(templates)) return;
+            if (!TemplateUtils.GetHasTemplates()) return;
             List<ICompletionListItem> items = GetPostfixCompletionItems(target, expr);
             List<ICompletionListItem> allItems = Reflector.CompletionListAllItems();
             if (allItems != null)
@@ -429,14 +428,13 @@ namespace PostfixCodeCompletion
 
         static void OnCharAdded(ScintillaControl sender, int value)
         {
-            if ((char) value != '.') return;
+            if ((char) value != '.' || !TemplateUtils.GetHasTemplates()) return;
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
             if (ASComplete.OnChar(sci, value, false))
             {
                 if (Reflector.CompletionListCompletionList().Visible) UpdateCompletionList();
                 return;
             }
-            if (!Directory.Exists(TemplateUtils.GetTemplatesDir())) return;
             if (!Reflector.ASCompleteHandleDotCompletion(sci, true) || CompletionList.Active) return;
             ASResult expr = GetPostfixCompletionExpr();
             if (expr == null || expr.IsNull()) return;
