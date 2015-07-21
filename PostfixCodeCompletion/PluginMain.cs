@@ -4,10 +4,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using ASCompletion;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
@@ -20,8 +18,10 @@ using PluginCore.Helpers;
 using PluginCore.Managers;
 using PluginCore.Utilities;
 using PostfixCodeCompletion.Helpers;
+using ProjectManager;
 using ProjectManager.Projects.Haxe;
 using ScintillaNet;
+using PluginUI = ASCompletion.PluginUI;
 using TemplateUtils = PostfixCodeCompletion.Helpers.TemplateUtils;
 
 namespace PostfixCodeCompletion
@@ -82,7 +82,7 @@ namespace PostfixCodeCompletion
                     Reflector.CompletionListCompletionList().VisibleChanged += OnCompletionListVisibleChanged;
                     break;
                 case EventType.Command:
-                    if (((DataEvent) e).Action == ProjectManager.ProjectManagerEvents.Project)
+                    if (((DataEvent) e).Action == ProjectManagerEvents.Project)
                     {
                         if (!(PluginBase.CurrentProject is HaxeProject)) return;
                         Context context = (Context) ASContext.GetLanguageContext("haxe");
@@ -176,8 +176,7 @@ namespace PostfixCodeCompletion
         static void UpdateCompletionList(MemberModel target, ASResult expr)
         {
             if (target == null) return;
-            string templates = TemplateUtils.GetTemplatesDir();
-            if (!Directory.Exists(templates)) return;
+            if (!TemplateUtils.GetHasTemplates()) return;
             List<ICompletionListItem> items = GetPostfixCompletionItems(target, expr);
             List<ICompletionListItem> allItems = Reflector.CompletionListAllItems();
             if (allItems != null)
@@ -199,11 +198,10 @@ namespace PostfixCodeCompletion
         static ASResult GetPostfixCompletionExpr()
         {
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            int currentLine = Reflector.ScintillaControlCurrentLine;
+            int currentLine = sci.CurrentLine;
             int positionFromLine = sci.PositionFromLine(currentLine);
             int position = -1;
-            string characters =
-                ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
+            string characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
             for (int i = sci.CurrentPos; i > positionFromLine; i--)
             {
                 char c = (char) sci.CharAt(i);
@@ -243,17 +241,11 @@ namespace PostfixCodeCompletion
             else if (expr.Type != null) result.AddRange(GetCompletionItems(expr.Type.Type, target, expr));
             result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_MEMBER, expr));
             if (GetTargetIsNullable(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NULLABLE, expr));
-            }
             if (GetTargetIsCollection(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
-            }
             if (GetTargetIsHash(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION_OR_HASH, expr));
-            }
             if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower() == "haxe")
             {
                 ClassModel type = expr.Type != null && !string.IsNullOrEmpty(expr.Type.Type) &&
@@ -263,27 +255,17 @@ namespace PostfixCodeCompletion
                 if (type != null)
                 {
                     if (GetTargetIsCollection(type))
-                    {
                         result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
-                    }
                     if (GetTargetIsHash(type))
-                    {
                         result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION_OR_HASH, expr));
-                    }
                 }
             }
             if (GetTargetIsBoolean(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_BOOLEAN, expr));
-            }
             if (GetTargetIsNumber(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NUMBER, expr));
-            }
             if (GetTargetIsString(target))
-            {
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_STRING, expr));
-            }
             return result.Distinct().ToList();
         }
 
@@ -319,21 +301,14 @@ namespace PostfixCodeCompletion
                     string type = target.Type;
                     return type == ASContext.Context.Features.objectKey || type == "Dictionary";
                 case "haxe":
-                    Func<MemberModel, bool> isIteratorOrIterable = m =>
-                    {
-                        string cleanType = Reflector.ASGeneratorCleanType(m.Type);
-                        return cleanType == "Iterator" || cleanType == "Iterable";
-                    };
-                    if (isIteratorOrIterable(target)) return true;
+                    if (IsIteratorOrIterable(target)) return true;
                     if (target is ClassModel)
                     {
                         ClassModel classModel = target as ClassModel;
                         while (classModel != null && !classModel.IsVoid())
                         {
-                            if (classModel.Members.Cast<MemberModel>().Any(member => isIteratorOrIterable(member)))
-                            {
+                            if (classModel.Members.Cast<MemberModel>().Any(IsIteratorOrIterable))
                                 return true;
-                            }
                             classModel.ResolveExtends();
                             classModel = classModel.Extends;
                         }
@@ -341,6 +316,12 @@ namespace PostfixCodeCompletion
                     break;
             }
             return false;
+        }
+
+        static bool IsIteratorOrIterable(MemberModel member)
+        {
+            string cleanType = Reflector.ASGeneratorCleanType(member.Type);
+            return cleanType == "Iterator" || cleanType == "Iterable";
         }
 
         static bool GetTargetIsBoolean(MemberModel target)
@@ -447,14 +428,13 @@ namespace PostfixCodeCompletion
 
         static void OnCharAdded(ScintillaControl sender, int value)
         {
-            if ((char) value != '.') return;
+            if ((char) value != '.' || !TemplateUtils.GetHasTemplates()) return;
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
             if (ASComplete.OnChar(sci, value, false))
             {
                 if (Reflector.CompletionListCompletionList().Visible) UpdateCompletionList();
                 return;
             }
-            if (!Directory.Exists(TemplateUtils.GetTemplatesDir())) return;
             if (!Reflector.ASCompleteHandleDotCompletion(sci, true) || CompletionList.Active) return;
             ASResult expr = GetPostfixCompletionExpr();
             if (expr == null || expr.IsNull()) return;
@@ -484,6 +464,8 @@ namespace PostfixCodeCompletion
             }
             if (!(PluginBase.CurrentProject is HaxeProject)) return;
             HaXeSettings settings = (HaXeSettings)((Context) ASContext.GetLanguageContext("haxe")).Settings;
+            InstalledSDK currentSDK = settings.InstalledSDKs.FirstOrDefault(sdk => sdk.Path == PluginBase.CurrentProject.CurrentSDK);
+            if (currentSDK == null || !new SemVer("3.1.3").IsOlderThan(new SemVer(currentSDK.Version))) return;
             switch (settings.CompletionMode)
             {
                 case HaxeCompletionModeEnum.CompletionServer:
@@ -601,7 +583,7 @@ namespace PostfixCodeCompletion
                     ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
                     int position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
                     int exprStartPosition = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
-                    int lineNum = Reflector.ScintillaControlCurrentLine;
+                    int lineNum = sci.CurrentLine;
                     string line = sci.GetLine(lineNum);
                     string snippet = line.Substring(exprStartPosition - sci.PositionFromLine(lineNum), position - exprStartPosition);
                     description = template.Replace(SnippetHelper.BOUNDARY, string.Empty);

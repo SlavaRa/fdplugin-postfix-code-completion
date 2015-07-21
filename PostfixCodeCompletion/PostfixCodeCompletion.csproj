@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -67,6 +68,10 @@
     <ProjectReference Include="..\..\ASCompletion\ASCompletion.csproj">
       <Project>{4EBF2653-9654-4E40-880E-0046B3D6210E}</Project>
       <Name>ASCompletion</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\FlashDebugger\FlashDebugger.csproj">
+      <Project>{194B58C9-9D2B-4D5E-9256-773FD3222582}</Project>
+      <Name>FlashDebugger</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\HaXeContext\HaXeContext.csproj">
       <Project>{5b4e9515-994a-4da7-9916-cda8fd874701}</Project>

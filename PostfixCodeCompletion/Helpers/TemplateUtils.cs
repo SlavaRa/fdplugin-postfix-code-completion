@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using ASCompletion.Completion;
 using ASCompletion.Context;
@@ -38,31 +39,49 @@ namespace PostfixCodeCompletion.Helpers
             PATTERN_STRING
         };
 
-        internal static string GetTemplatesDir()
+        internal static bool GetHasTemplates()
         {
-            string lang = PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower();
-            string path = Path.Combine(PathHelper.SnippetDir, lang);
-            return Path.Combine(path, POSTFIX_GENERATORS);
+            return GetHasTemplates(PathHelper.SnippetDir)
+                || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path));
         }
-        
+
+        static bool GetHasTemplates(string path)
+        {
+            path = GetTemplatesDir(path);
+            return Directory.Exists(path) && Directory.GetFiles(path, "*.fds").Length > 0;
+        }
+
+        static string GetTemplatesDir(string path)
+        {
+            path = Path.Combine(path, PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
+            path = Path.Combine(path, POSTFIX_GENERATORS);
+            return path;
+        }
+
         internal static Dictionary<string, string> GetTemplates(string type)
         {
             string pattern = Templates.Contains(type) ? string.Format(PATTERN_BLOCK, type) : string.Format(PATTERN_T_BLOCK, type);
             Dictionary<string, string> result = new Dictionary<string, string>();
-            foreach (string file in Directory.GetFiles(GetTemplatesDir(), "*.fds"))
+            List<string> paths = Settings.CustomSnippetDirectories.Select(it => GetTemplatesDir(it.Path)).ToList();
+            paths.Add(GetTemplatesDir(PathHelper.SnippetDir));
+            paths.RemoveAll(s => !Directory.Exists(s));
+            foreach (string path in paths)
             {
-                string content = GetFileContent(file);
-                string marker = "#pcc:" + type;
-                int startIndex = content.IndexOf(marker, StringComparison.Ordinal);
-                if (startIndex != -1)
+                foreach (string file in Directory.GetFiles(path, "*.fds"))
                 {
-                    startIndex += marker.Length;
-                    content = content.Remove(0, startIndex);
+                    string content = GetFileContent(file);
+                    string marker = "#pcc:" + type;
+                    int startIndex = content.IndexOf(marker, StringComparison.Ordinal);
+                    if (startIndex != -1)
+                    {
+                        startIndex += marker.Length;
+                        content = content.Remove(0, startIndex);
+                    }
+                    startIndex = content.IndexOf("#pcc:", StringComparison.Ordinal);
+                    if (startIndex != -1) content = content.Remove(startIndex);
+                    if (!Regex.IsMatch(content, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline)) continue;
+                    result.Add(file, string.Format("{0}{1}{0}", SnippetHelper.BOUNDARY, content.Replace("\r\n", "\n")));
                 }
-                startIndex = content.IndexOf("#pcc:", StringComparison.Ordinal);
-                if (startIndex != -1) content = content.Remove(startIndex);
-                if (!Regex.IsMatch(content, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline)) continue;
-                result.Add(file, string.Format("{0}{1}{0}", SnippetHelper.BOUNDARY, content.Replace("\r\n", "\n")));
             }
             return result;
         }
@@ -146,6 +165,5 @@ namespace PostfixCodeCompletion.Helpers
             }
             return template;
         }
-
     }
 }
