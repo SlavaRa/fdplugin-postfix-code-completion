@@ -548,7 +548,7 @@ namespace PostfixCodeCompletion
             this.expr = expr;
         }
 
-        public string Label { get; private set; }
+        public string Label { get; }
 
         string pattern;
         public virtual string Pattern
