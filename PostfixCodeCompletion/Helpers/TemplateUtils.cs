@@ -15,7 +15,7 @@ namespace PostfixCodeCompletion.Helpers
     static class TemplateUtils
     {
         public const string PATTERN_BLOCK = @"\$\([^\)]*{0}.*?\)";
-        public const string PATTERN_T_BLOCK = @"<<[^\$]*?\$\({0}\).*?>>";
+        public const string PATTERN_T_BLOCK = @"[^\$]*?\$\({0}\)";
         internal const string POSTFIX_GENERATORS = "PostfixGenerators";
         internal const string PATTERN_MEMBER = "Member";
         internal const string PATTERN_NULLABLE = "Nullable";
