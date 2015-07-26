@@ -3,10 +3,10 @@ for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(Collection).length; $(ItmU
 	$(EntryPoint)
 }
 #pcc:Number
-for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < <<$(Number)>>; $(ItmUniqueVar)++) $(CSLB){
+for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(Number); $(ItmUniqueVar)++) $(CSLB){
 	$(EntryPoint)
 }
 #pcc:int
-for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < <<$(int)>>; $(ItmUniqueVar)++) $(CSLB){
+for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(int); $(ItmUniqueVar)++) $(CSLB){
 	$(EntryPoint)
 }

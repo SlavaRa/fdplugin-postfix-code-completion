@@ -352,7 +352,17 @@ namespace PostfixCodeCompletion
 
         static IEnumerable<ICompletionListItem> GetCompletionItems(string pattern, MemberModel target, ASResult expr)
         {
-            return GetCompletionItems(TemplateUtils.GetTemplates(target.Type), pattern, expr);
+            ClassModel type = ASContext.Context.ResolveType(target.Type, ASContext.Context.CurrentModel);
+            Dictionary<string, string> templates = null;
+            while(!type.IsVoid())
+            {
+                pattern = type.QualifiedName;
+                templates = TemplateUtils.GetTemplates(type.QualifiedName);
+                if (templates.Count > 0) break;
+                type.ResolveExtends();
+                type = type.Extends;
+            }
+            return GetCompletionItems(templates ?? new Dictionary<string, string>(), pattern, expr);
         }
 
         static IEnumerable<ICompletionListItem> GetCompletionItems(string pattern, ASResult expr)
@@ -538,7 +548,7 @@ namespace PostfixCodeCompletion
             this.expr = expr;
         }
 
-        public string Label { get; private set; }
+        public string Label { get; }
 
         string pattern;
         public virtual string Pattern
