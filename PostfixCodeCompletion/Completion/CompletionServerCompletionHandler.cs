@@ -24,7 +24,7 @@ namespace PostfixCodeCompletion
         {
             this.haxeProcess = haxeProcess;
             this.port = port;
-            Environment.SetEnvironmentVariable("HAXE_SERVER_PORT", "" + port);
+            Environment.SetEnvironmentVariable("HAXE_SERVER_PORT", port.ToString());
         }
 
         public bool IsRunning()
@@ -76,16 +76,16 @@ namespace PostfixCodeCompletion
             listening = true;
             haxeProcess.BeginOutputReadLine();
             haxeProcess.BeginErrorReadLine();
-            haxeProcess.OutputDataReceived += haxeProcess_OutputDataReceived;
-            haxeProcess.ErrorDataReceived += haxeProcess_ErrorDataReceived;
+            haxeProcess.OutputDataReceived += OnOutputDataReceived;
+            haxeProcess.ErrorDataReceived += OnErrorDataReceived;
         }
 
-        static void haxeProcess_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        static void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            TraceManager.AddAsync(e.Data, 2);
+            TraceManager.AddAsync("PCC: " + e.Data, 2);
         }
 
-        void haxeProcess_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        void OnErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data == null) return;
             if (!Regex.IsMatch(e.Data, "Error.*--wait")) return;
@@ -95,7 +95,7 @@ namespace PostfixCodeCompletion
 
         public void Stop()
         {
-            if (IsRunning())haxeProcess.Kill();
+            if (IsRunning()) haxeProcess.Kill();
         }
     }
 }
