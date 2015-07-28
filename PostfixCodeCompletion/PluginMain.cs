@@ -17,6 +17,7 @@ using PluginCore.Controls;
 using PluginCore.Helpers;
 using PluginCore.Managers;
 using PluginCore.Utilities;
+using PostfixCodeCompletion.Completion;
 using PostfixCodeCompletion.Helpers;
 using ProjectManager;
 using ProjectManager.Projects.Haxe;
@@ -283,7 +284,7 @@ namespace PostfixCodeCompletion
             {
                 case "as2":
                 case "as3":
-                    return type.Contains("Vector.<") || type.Contains(string.Format("{0}@", arrayKey));
+                    return type.Contains("Vector.<") || type.Contains("@" + arrayKey);
                 case "haxe":
                     return Reflector.ASGeneratorCleanType(type) == Reflector.ASGeneratorCleanType(arrayKey)
                            || (type.Contains("Vector<") && Reflector.ASGeneratorCleanType(type) == Reflector.ASGeneratorCleanType("Vector<T>"));

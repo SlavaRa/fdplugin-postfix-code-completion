@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace PostfixCodeCompletion
+namespace PostfixCodeCompletion.Completion
 {
     class CompilerCompletionHandler : IHaxeCompletionHandler
     {
