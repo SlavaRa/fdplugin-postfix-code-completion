@@ -29,3 +29,5 @@ D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeComplet
 D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\fdb.j4n.dll
 D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\jni4net.n-0.8.4.0.dll
 D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\FlashDebugger.pdb
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\LayoutManager.dll
+D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\bin\release\LayoutManager.pdb

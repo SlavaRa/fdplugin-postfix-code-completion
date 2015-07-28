@@ -169,7 +169,7 @@ namespace PostfixCodeCompletion
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
             if (sci.ConfigurationLanguage.ToLower() != "haxe" || expr.Context == null || sci.CharAt(expr.Context.Position) != '.')
                 return;
-            HaxeComplete hc = new HaxeComplete(sci, expr, false, completionModeHandler, HaxeCompilerService.TYPE);
+            HaxeComplete hc = new HaxeComplete(sci, expr, false, completionModeHandler, HaxeCompilerService.Type);
             hc.GetPositionType(OnFunctionTypeResult);
         }
 
@@ -496,7 +496,7 @@ namespace PostfixCodeCompletion
 
         static void OnHaxeContextFallbackNeeded(bool notSupported)
         {
-            TraceManager.AddAsync("This SDK does not support server mode");
+            TraceManager.AddAsync("PCC: This SDK does not support server mode");
             if (completionModeHandler != null)
             {
                 completionModeHandler.Stop();
@@ -509,11 +509,11 @@ namespace PostfixCodeCompletion
         {
             switch (status)
             {
-                case HaxeCompleteStatus.ERROR:
+                case HaxeCompleteStatus.Error:
                     TraceManager.AddAsync(hc.Errors, -3);
                     if (hc.AutoHide) CompletionList.Hide();
                     break;
-                case HaxeCompleteStatus.TYPE:
+                case HaxeCompleteStatus.Type:
                     Reflector.CompletionListCompletionList().VisibleChanged -= OnCompletionListVisibleChanged;
                     ASResult expr = hc.Expr;
                     if (result.Type is ClassModel)
