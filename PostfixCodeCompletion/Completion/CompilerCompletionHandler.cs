@@ -5,7 +5,7 @@ namespace PostfixCodeCompletion
 {
     class CompilerCompletionHandler : IHaxeCompletionHandler
     {
-        Process haxeProcess;
+        readonly Process haxeProcess;
 
         public CompilerCompletionHandler(Process haxeProcess)
         {

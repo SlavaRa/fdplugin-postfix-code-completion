@@ -10,6 +10,7 @@ using ASCompletion.Context;
 using ASCompletion.Model;
 using PluginCore;
 using PluginCore.Helpers;
+using PluginCore.Managers;
 using ProjectManager.Projects.Haxe;
 using ScintillaNet;
 
@@ -28,8 +29,8 @@ namespace PostfixCodeCompletion
         public string Errors;
         HaxeCompleteResult result;
         readonly IHaxeCompletionHandler handler;
-        readonly string FileName;
-        readonly string TempFileName;
+        readonly string fileName;
+        readonly string tempFileName;
 
         public HaxeComplete(ScintillaControl sci, ASResult expr, bool autoHide, IHaxeCompletionHandler completionHandler, HaxeCompilerService compilerService)
         {
@@ -39,16 +40,17 @@ namespace PostfixCodeCompletion
             AutoHide = autoHide;
             handler = completionHandler;
             CompilerService = compilerService;
-            Status = HaxeCompleteStatus.NONE;
-            FileName = PluginBase.MainForm.CurrentDocument.FileName;
-            TempFileName = GetTempFileName();
+            Status = HaxeCompleteStatus.None;
+            fileName = PluginBase.MainForm.CurrentDocument.FileName;
+            tempFileName = GetTempFileName();
         }
 
         static string GetTempFileName()
         {
-            string tempFolder = Path.GetTempPath();
+            string tempFolder = Path.Combine(Path.GetTempPath(), "FlashDevelop");
+            tempFolder += Path.DirectorySeparatorChar;
             string projDirectoryName = Path.GetDirectoryName(PluginBase.CurrentProject.ProjectPath);
-            projDirectoryName += Path.DirectorySeparatorChar;
+            projDirectoryName = Path.GetDirectoryName(projDirectoryName) + Path.DirectorySeparatorChar;
             return PluginBase.MainForm.CurrentDocument.FileName.Replace(projDirectoryName, tempFolder);
         }
 
@@ -58,9 +60,9 @@ namespace PostfixCodeCompletion
             Sci.SetSel(pos, Expr.Context.Position);
             string selText = Sci.SelText;
             Sci.ReplaceSel(string.Empty);
-            string directoryName = Path.GetDirectoryName(TempFileName);
+            string directoryName = Path.GetDirectoryName(tempFileName);
             if (!Directory.Exists(directoryName)) Directory.CreateDirectory(directoryName);
-            FileHelper.WriteFile(TempFileName, Sci.Text, Sci.Encoding, false);
+            FileHelper.WriteFile(tempFileName, Sci.Text, Sci.Encoding, false);
             if (!string.IsNullOrEmpty(selText))
             {
                 pos = Expr.Context.Position;
@@ -99,21 +101,21 @@ namespace PostfixCodeCompletion
             if (!string.IsNullOrEmpty(package))
             {
                 var cl = ASContext.Context.CurrentModel.Package + "." + GetCurrentClassName();
-                var libToAdd = FileName.Split(
+                var libToAdd = fileName.Split(
                         new[] { "\\" + string.Join("\\", cl.Split(new[] { "." }, StringSplitOptions.RemoveEmptyEntries)) },
                         StringSplitOptions.RemoveEmptyEntries).GetValue(0).ToString();
                 hxmlArgs.Add("-cp \"" + libToAdd + "\" " + cl);
             }
             else hxmlArgs.Add(GetCurrentClassName());
-            hxmlArgs.Add("-cp " + Path.GetDirectoryName(TempFileName));
+            hxmlArgs.Add("-cp " + Path.GetDirectoryName(tempFileName));
             string mode = "";
             switch (CompilerService)
             {
-                case HaxeCompilerService.TYPE:
+                case HaxeCompilerService.Type:
                     mode = "@type";
                     break;
             }
-            hxmlArgs.Insert(0, string.Format("--display {0}@{1}{2}", TempFileName, pos, mode));
+            hxmlArgs.Insert(0, string.Format("--display {0}@{1}{2}", tempFileName, pos, mode));
             hxmlArgs.Insert(1, "-D use_rtti_doc");
             hxmlArgs.Insert(2, "-D display-details");
             if (hxproj.TraceEnabled) hxmlArgs.Insert(2, "-debug");
@@ -122,16 +124,16 @@ namespace PostfixCodeCompletion
 
         string GetCurrentClassName()
         {
-            var start = FileName.LastIndexOf("\\") + 1;
-            var end = FileName.LastIndexOf(".");
-            return FileName.Substring(start, end - start);
+            var start = fileName.LastIndexOf("\\", StringComparison.Ordinal) + 1;
+            var end = fileName.LastIndexOf(".", StringComparison.Ordinal);
+            return fileName.Substring(start, end - start);
         }
 
         int GetDisplayPosition()
         {
             switch (CompilerService)
             {
-                case HaxeCompilerService.TYPE:
+                case HaxeCompilerService.Type:
                     return Expr.Context.Position + 1;
             }
             return Expr.Context.Position;
@@ -142,7 +144,7 @@ namespace PostfixCodeCompletion
             if (!lines.StartsWith("<"))
             {
                 Errors = lines.Trim();
-                return HaxeCompleteStatus.ERROR;
+                return HaxeCompleteStatus.Error;
             }
             try 
             {
@@ -156,8 +158,8 @@ namespace PostfixCodeCompletion
             }
             catch (Exception ex)
             {
-                Errors = "Error parsing Haxe compiler output: " + ex.Message;
-                return HaxeCompleteStatus.ERROR;
+                Errors = "PPC: Error parsing Haxe compiler output: " + ex.Message;
+                return HaxeCompleteStatus.Error;
             }
         }
 
@@ -168,9 +170,9 @@ namespace PostfixCodeCompletion
             {
                 case "type":
                     ProcessType(reader);
-                    return HaxeCompleteStatus.TYPE;
+                    return HaxeCompleteStatus.Type;
             }
-            return HaxeCompleteStatus.FAILED;
+            return HaxeCompleteStatus.Failed;
         }
 
         void ProcessType(XmlReader reader)
@@ -199,7 +201,7 @@ namespace PostfixCodeCompletion
                     member.Parameters = new List<MemberModel>();
                     for (int i = 0; i < types.Length - 1; i++)
                     {
-                        MemberModel param = new MemberModel(types[i].Trim(), "", FlagType.ParameterVar, Visibility.Public);
+                        MemberModel param = new MemberModel(types[i].Trim(), string.Empty, FlagType.ParameterVar, Visibility.Public);
                         member.Parameters.Add(param);
                     }
                     member.Type = types[types.Length - 1].Trim();
@@ -222,15 +224,15 @@ namespace PostfixCodeCompletion
 
     enum HaxeCompleteStatus
     {
-        NONE = 0,
-        FAILED = 1,
-        ERROR = 2,
-        TYPE = 3
+        None = 0,
+        Failed = 1,
+        Error = 2,
+        Type = 3
     }
 
     enum HaxeCompilerService
     {
-        TYPE
+        Type
     }
 
     class HaxeCompleteResult
