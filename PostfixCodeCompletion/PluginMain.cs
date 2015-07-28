@@ -4,13 +4,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
 using FlashDevelop;
-using FlashDevelop.Utilities;
 using HaXeContext;
 using PluginCore;
 using PluginCore.Controls;
@@ -563,17 +561,7 @@ namespace PostfixCodeCompletion
         {
             get
             {
-                ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-                int position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
-                sci.SetSel(position, sci.CurrentPos);
-                sci.ReplaceSel(string.Empty);
-                position = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
-                sci.SetSel(position, sci.CurrentPos);
-                string snippet = Regex.Replace(template, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-                snippet = TemplateUtils.ProcessMemberTemplate(snippet, expr);
-                snippet = ArgsProcessor.ProcessCodeStyleLineBreaks(snippet);
-                sci.ReplaceSel(string.Empty);
-                SnippetHelper.InsertSnippetText(sci, position, snippet);
+                TemplateUtils.InsertSnippetText(expr, template, Pattern);
                 return null;
             }
         }
@@ -590,21 +578,7 @@ namespace PostfixCodeCompletion
         {
             get
             {
-                if (string.IsNullOrEmpty(description))
-                {
-                    ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
-                    int position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
-                    int exprStartPosition = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
-                    int lineNum = sci.CurrentLine;
-                    string line = sci.GetLine(lineNum);
-                    string snippet = line.Substring(exprStartPosition - sci.PositionFromLine(lineNum), position - exprStartPosition);
-                    description = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
-                    description = Regex.Replace(description, string.Format(TemplateUtils.PATTERN_BLOCK, Pattern), snippet, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-                    description = TemplateUtils.ProcessMemberTemplate(description, expr);
-                    description = ArgsProcessor.ProcessCodeStyleLineBreaks(description);
-                    description = description.Replace(SnippetHelper.ENTRYPOINT, "|");
-                    description = description.Replace(SnippetHelper.EXITPOINT, "|");
-                }
+                if (string.IsNullOrEmpty(description)) description = TemplateUtils.GetDescription(expr, template, Pattern);
                 return description;
             }
         }
