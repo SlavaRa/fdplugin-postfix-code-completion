@@ -440,6 +440,7 @@ namespace PostfixCodeCompletion
         {
             if ((char) value != '.' || !TemplateUtils.GetHasTemplates()) return;
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
+            if (sci.PositionIsOnComment(sci.CurrentPos)) return;
             if (ASComplete.OnChar(sci, value, false))
             {
                 if (Reflector.CompletionListCompletionList().Visible) UpdateCompletionList();
