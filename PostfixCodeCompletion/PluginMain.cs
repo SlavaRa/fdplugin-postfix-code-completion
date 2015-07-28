@@ -578,8 +578,7 @@ namespace PostfixCodeCompletion
         {
             get
             {
-                if (string.IsNullOrEmpty(description)) description = TemplateUtils.GetDescription(expr, template, Pattern);
-                return description;
+                return description ?? (description = TemplateUtils.GetDescription(expr, template, Pattern));
             }
         }
 
