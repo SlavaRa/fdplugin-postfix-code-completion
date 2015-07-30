@@ -6,9 +6,11 @@ using System.Text.RegularExpressions;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
+using FlashDevelop.Utilities;
 using HaXeContext;
 using PluginCore;
 using PluginCore.Helpers;
+using ScintillaNet;
 
 namespace PostfixCodeCompletion.Helpers
 {
@@ -114,7 +116,7 @@ namespace PostfixCodeCompletion.Helpers
             if (!string.IsNullOrEmpty(word) && (string.IsNullOrEmpty(type) || Regex.IsMatch(type, "(<[^]]+>)"))) word = null;
             if (!string.IsNullOrEmpty(type) && type == ASContext.Context.Features.voidKey) type = null;
             if (string.IsNullOrEmpty(varname)) varname = Reflector.ASGeneratorGuessVarName(word, type);
-            if (!string.IsNullOrEmpty(varname) && varname == word && varname.Length == 1) varname = string.Format("{0}1", varname);
+            if (!string.IsNullOrEmpty(varname) && varname == word && varname.Length == 1) varname = varname + "1";
             return new KeyValuePair<string, string>(varname, type);
         }
 
@@ -133,7 +135,7 @@ namespace PostfixCodeCompletion.Helpers
         internal static string ProcessCollectionTemplate(string template, ASResult expr)
         {
             string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
-            if (type.Contains("@")) type = string.Format("{0}>", type.Replace("@", ".<"));
+            if (type.Contains("@")) type = type.Replace("@", ".<") + ">";
             type = Regex.Match(type, "<([^]]+)>").Groups[1].Value;
             type = Reflector.ASGeneratorGetShortType(type);
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
@@ -164,6 +166,38 @@ namespace PostfixCodeCompletion.Helpers
                     break;
             }
             return template;
+        }
+
+        internal static string GetDescription(ASResult expr, string template, string pccpattern)
+        {
+            ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
+            int position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
+            int exprStartPosition = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
+            int lineNum = sci.CurrentLine;
+            string line = sci.GetLine(lineNum);
+            string snippet = line.Substring(exprStartPosition - sci.PositionFromLine(lineNum), position - exprStartPosition);
+            string result = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
+            result = Regex.Replace(result, string.Format(PATTERN_BLOCK, pccpattern), snippet, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            result = ProcessMemberTemplate(result, expr);
+            result = ArgsProcessor.ProcessCodeStyleLineBreaks(result);
+            result = result.Replace(SnippetHelper.ENTRYPOINT, "|");
+            result = result.Replace(SnippetHelper.EXITPOINT, "|");
+            return result;
+        }
+
+        internal static void InsertSnippetText(ASResult expr, string template, string pccpattern)
+        {
+            ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
+            int position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
+            sci.SetSel(position, sci.CurrentPos);
+            sci.ReplaceSel(string.Empty);
+            position = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
+            sci.SetSel(position, sci.CurrentPos);
+            string snippet = Regex.Replace(template, string.Format(PATTERN_BLOCK, pccpattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            snippet = ProcessMemberTemplate(snippet, expr);
+            snippet = ArgsProcessor.ProcessCodeStyleLineBreaks(snippet);
+            sci.ReplaceSel(string.Empty);
+            SnippetHelper.InsertSnippetText(sci, position, snippet);
         }
     }
 }
