@@ -474,8 +474,7 @@ namespace PostfixCodeCompletion
             }
             if (!(PluginBase.CurrentProject is HaxeProject)) return;
             HaXeSettings settings = (HaXeSettings)((Context) ASContext.GetLanguageContext("haxe")).Settings;
-            InstalledSDK currentSDK = settings.InstalledSDKs.FirstOrDefault(sdk => sdk.Path == PluginBase.CurrentProject.CurrentSDK);
-            if (currentSDK == null || !new SemVer("3.1.3").IsOlderThan(new SemVer(currentSDK.Version))) return;
+            if (!IsValidHaxeSDK(settings.InstalledSDKs.FirstOrDefault(sdk => sdk.Path == PluginBase.CurrentProject.CurrentSDK))) return;
             switch (settings.CompletionMode)
             {
                 case HaxeCompletionModeEnum.CompletionServer:
@@ -492,6 +491,18 @@ namespace PostfixCodeCompletion
                     completionModeHandler = new CompilerCompletionHandler(CreateHaxeProcess(""));
                     break;
             }
+        }
+
+        static bool IsValidHaxeSDK(InstalledSDK sdk)
+        {
+            if (sdk == null) return false;
+            string version = sdk.Version;
+            int hyphenIndex = version.IndexOf('-');
+            if (hyphenIndex >= 0) version = version.Substring(0, hyphenIndex);
+            string[] numbers = version.Split('.');
+            var major = numbers.Length >= 1 ? int.Parse(numbers[0]) : 0;
+            var minor = numbers.Length >= 2 ? int.Parse(numbers[1]) : 0;
+            return major >= 3 && minor >= 2;
         }
 
         static void OnHaxeContextFallbackNeeded(bool notSupported)
