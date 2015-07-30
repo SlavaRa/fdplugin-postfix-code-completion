@@ -1,13 +1,13 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
-using PluginCore;
-using ProjectManager.Projects.Haxe;
-using PluginCore.Managers;
-using System;
 using System.Text.RegularExpressions;
+using PluginCore;
+using PluginCore.Managers;
+using ProjectManager.Projects.Haxe;
 
-namespace PostfixCodeCompletion
+namespace PostfixCodeCompletion.Completion
 {
     delegate void FallbackNeededHandler(bool notSupported);
 

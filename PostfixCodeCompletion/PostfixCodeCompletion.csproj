@@ -44,7 +44,6 @@
     <Compile Include="Completion\CompilerCompletionHandler.cs" />
     <Compile Include="Completion\CompletionServerCompletionHandler.cs" />
     <Compile Include="Completion\HaxeComplete.cs" />
-    <Compile Include="Completion\IHaxeCompletionHandler.cs" />
     <Compile Include="Helpers\Reflector.cs" />
     <Compile Include="Helpers\ScintillaControlHelper.cs" />
     <Compile Include="Helpers\TemplateUtils.cs" />

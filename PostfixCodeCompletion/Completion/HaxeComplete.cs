@@ -10,13 +10,18 @@ using ASCompletion.Context;
 using ASCompletion.Model;
 using PluginCore;
 using PluginCore.Helpers;
-using PluginCore.Managers;
 using ProjectManager.Projects.Haxe;
 using ScintillaNet;
 
-namespace PostfixCodeCompletion
+namespace PostfixCodeCompletion.Completion
 {
     internal delegate void HaxeCompleteResultHandler<T>(HaxeComplete hc, T result, HaxeCompleteStatus status);
+
+    interface IHaxeCompletionHandler
+    {
+        string GetCompletion(string[] args);
+        void Stop();
+    }
 
     internal class HaxeComplete
     {
@@ -48,9 +53,8 @@ namespace PostfixCodeCompletion
         static string GetTempFileName()
         {
             string tempFolder = Path.Combine(Path.GetTempPath(), "FlashDevelop");
-            tempFolder += Path.DirectorySeparatorChar;
             string projDirectoryName = Path.GetDirectoryName(PluginBase.CurrentProject.ProjectPath);
-            projDirectoryName = Path.GetDirectoryName(projDirectoryName) + Path.DirectorySeparatorChar;
+            projDirectoryName = Path.GetDirectoryName(projDirectoryName);
             return PluginBase.MainForm.CurrentDocument.FileName.Replace(projDirectoryName, tempFolder);
         }
 
@@ -109,12 +113,7 @@ namespace PostfixCodeCompletion
             else hxmlArgs.Add(GetCurrentClassName());
             hxmlArgs.Add("-cp " + Path.GetDirectoryName(tempFileName));
             string mode = "";
-            switch (CompilerService)
-            {
-                case HaxeCompilerService.Type:
-                    mode = "@type";
-                    break;
-            }
+            if (CompilerService == HaxeCompilerService.Type) mode = "@type";
             hxmlArgs.Insert(0, string.Format("--display {0}@{1}{2}", tempFileName, pos, mode));
             hxmlArgs.Insert(1, "-D use_rtti_doc");
             hxmlArgs.Insert(2, "-D display-details");
