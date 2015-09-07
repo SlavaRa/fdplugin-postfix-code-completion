@@ -34,7 +34,6 @@ namespace PostfixCodeCompletion.Completion
         public string Errors;
         HaxeCompleteResult result;
         readonly IHaxeCompletionHandler handler;
-        readonly string fileName;
         readonly string tempFileName;
 
         public HaxeComplete(ScintillaControl sci, ASResult expr, bool autoHide, IHaxeCompletionHandler completionHandler, HaxeCompilerService compilerService)
@@ -46,7 +45,6 @@ namespace PostfixCodeCompletion.Completion
             handler = completionHandler;
             CompilerService = compilerService;
             Status = HaxeCompleteStatus.None;
-            fileName = PluginBase.MainForm.CurrentDocument.FileName;
             tempFileName = GetTempFileName();
         }
 
@@ -100,18 +98,10 @@ namespace PostfixCodeCompletion.Completion
             var hxproj = ((HaxeProject) PluginBase.CurrentProject);
             var pos = GetDisplayPosition();
             var paths = ProjectManager.PluginMain.Settings.GlobalClasspaths.ToArray();
-            var hxmlArgs = new List<string>(hxproj.BuildHXML(paths, "Nothing__", true));
-            var package = ASContext.Context.CurrentModel.Package;
-            if (!string.IsNullOrEmpty(package))
+            var hxmlArgs = new List<string>(hxproj.BuildHXML(paths, "Nothing__", true))
             {
-                var cl = ASContext.Context.CurrentModel.Package + "." + GetCurrentClassName();
-                var libToAdd = fileName.Split(
-                        new[] { "\\" + string.Join("\\", cl.Split(new[] { "." }, StringSplitOptions.RemoveEmptyEntries)) },
-                        StringSplitOptions.RemoveEmptyEntries).GetValue(0).ToString();
-                hxmlArgs.Add("-cp \"" + libToAdd + "\" " + cl);
-            }
-            else hxmlArgs.Add(GetCurrentClassName());
-            hxmlArgs.Add("-cp " + Path.GetDirectoryName(tempFileName));
+                "-cp " + Path.GetDirectoryName(tempFileName)
+            };
             string mode = "";
             if (CompilerService == HaxeCompilerService.Type) mode = "@type";
             hxmlArgs.Insert(0, string.Format("--display {0}@{1}{2}", tempFileName, pos, mode));
@@ -119,13 +109,6 @@ namespace PostfixCodeCompletion.Completion
             hxmlArgs.Insert(2, "-D display-details");
             if (hxproj.TraceEnabled) hxmlArgs.Insert(2, "-debug");
             return hxmlArgs.ToArray();
-        }
-
-        string GetCurrentClassName()
-        {
-            var start = fileName.LastIndexOf("\\", StringComparison.Ordinal) + 1;
-            var end = fileName.LastIndexOf(".", StringComparison.Ordinal);
-            return fileName.Substring(start, end - start);
         }
 
         int GetDisplayPosition()

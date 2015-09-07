@@ -223,12 +223,14 @@ namespace PostfixCodeCompletion
         {
             if (expr == null || expr.IsNull()) return null;
             MemberModel member = expr.Member;
-            if (member != null &&
-                (!string.IsNullOrEmpty(member.Type) && member.Type != ASContext.Context.Features.voidKey))
+            if (member != null
+                && !string.IsNullOrEmpty(member.Type)
+                && member.Type != ASContext.Context.Features.voidKey)
                 return member;
             ClassModel type = expr.Type;
-            if (type != null && !type.IsVoid() && !string.IsNullOrEmpty(type.Type) &&
-                type.Type != ASContext.Context.Features.voidKey)
+            if (type != null && !type.IsVoid()
+                && !string.IsNullOrEmpty(type.Type)
+                && type.Type != ASContext.Context.Features.voidKey)
                 return type;
             return null;
         }
@@ -244,7 +246,7 @@ namespace PostfixCodeCompletion
             if (GetTargetIsCollection(target))
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
             if (GetTargetIsHash(target))
-                result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION_OR_HASH, expr));
+                result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_HASH, expr));
             if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower() == "haxe")
             {
                 ClassModel type = expr.Type != null && !string.IsNullOrEmpty(expr.Type.Type) &&
@@ -256,11 +258,11 @@ namespace PostfixCodeCompletion
                     if (GetTargetIsCollection(type))
                         result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
                     if (GetTargetIsHash(type))
-                        result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION_OR_HASH, expr));
+                        result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_HASH, expr));
                 }
             }
             if (GetTargetIsBoolean(target))
-                result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_BOOLEAN, expr));
+                result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_BOOL, expr));
             if (GetTargetIsNumber(target))
                 result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NUMBER, expr));
             if (GetTargetIsString(target))
@@ -392,7 +394,7 @@ namespace PostfixCodeCompletion
                     case TemplateUtils.PATTERN_COLLECTION:
                         template = TemplateUtils.ProcessCollectionTemplate(template, expr);
                         break;
-                    case TemplateUtils.PATTERN_COLLECTION_OR_HASH:
+                    case TemplateUtils.PATTERN_HASH:
                         template = TemplateUtils.ProcessHashTemplate(template, expr);
                         break;
                 }
@@ -559,7 +561,7 @@ namespace PostfixCodeCompletion
             this.expr = expr;
         }
 
-        public string Label { get; }
+        public string Label { get; set; }
 
         string pattern;
         public virtual string Pattern
