@@ -559,7 +559,7 @@ namespace PostfixCodeCompletion
             this.expr = expr;
         }
 
-        public string Label { get; }
+        public string Label { get; set; }
 
         string pattern;
         public virtual string Pattern
