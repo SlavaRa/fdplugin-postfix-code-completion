@@ -24,8 +24,8 @@ namespace PostfixCodeCompletion.Helpers
         internal const string PATTERN_COLLECTION = "Collection";
         internal const string PATTERN_COLLECTION_KEY_TYPE = "$(CollectionKeyType)";
         internal const string PATTERN_COLLECTION_ITEM_TYPE = "$(CollectionItemType)";
-        internal const string PATTERN_COLLECTION_OR_HASH = "Hash";
-        internal const string PATTERN_BOOLEAN = "Boolean";
+        internal const string PATTERN_HASH = "Hash";
+        internal const string PATTERN_BOOL = "Boolean";
         internal const string PATTERN_NUMBER = "Number";
         internal const string PATTERN_STRING = "String";
         public static Settings Settings { get; set; }
@@ -35,8 +35,8 @@ namespace PostfixCodeCompletion.Helpers
             PATTERN_MEMBER,
             PATTERN_NULLABLE,
             PATTERN_COLLECTION,
-            PATTERN_COLLECTION_OR_HASH,
-            PATTERN_BOOLEAN,
+            PATTERN_HASH,
+            PATTERN_BOOL,
             PATTERN_NUMBER,
             PATTERN_STRING
         };
