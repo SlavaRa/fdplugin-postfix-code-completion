@@ -34,7 +34,6 @@ namespace PostfixCodeCompletion.Completion
         public string Errors;
         HaxeCompleteResult result;
         readonly IHaxeCompletionHandler handler;
-        readonly string fileName;
         readonly string tempFileName;
 
         public HaxeComplete(ScintillaControl sci, ASResult expr, bool autoHide, IHaxeCompletionHandler completionHandler, HaxeCompilerService compilerService)
@@ -46,7 +45,6 @@ namespace PostfixCodeCompletion.Completion
             handler = completionHandler;
             CompilerService = compilerService;
             Status = HaxeCompleteStatus.None;
-            fileName = PluginBase.MainForm.CurrentDocument.FileName;
             tempFileName = GetTempFileName();
         }
 
@@ -100,8 +98,10 @@ namespace PostfixCodeCompletion.Completion
             var hxproj = ((HaxeProject) PluginBase.CurrentProject);
             var pos = GetDisplayPosition();
             var paths = ProjectManager.PluginMain.Settings.GlobalClasspaths.ToArray();
-            var hxmlArgs = new List<string>(hxproj.BuildHXML(paths, "Nothing__", true));
-            hxmlArgs.Add("-cp " + Path.GetDirectoryName(tempFileName));
+            var hxmlArgs = new List<string>(hxproj.BuildHXML(paths, "Nothing__", true))
+            {
+                "-cp " + Path.GetDirectoryName(tempFileName)
+            };
             string mode = "";
             if (CompilerService == HaxeCompilerService.Type) mode = "@type";
             hxmlArgs.Insert(0, string.Format("--display {0}@{1}{2}", tempFileName, pos, mode));
