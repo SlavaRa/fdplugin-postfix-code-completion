@@ -82,7 +82,7 @@ namespace PostfixCodeCompletion.Helpers
                     startIndex = content.IndexOf("#pcc:", StringComparison.Ordinal);
                     if (startIndex != -1) content = content.Remove(startIndex);
                     if (!Regex.IsMatch(content, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline)) continue;
-                    result.Add(file, string.Format("{0}{1}{0}", SnippetHelper.BOUNDARY, content.Replace("\r\n", "\n")));
+                    result.Add(file, content.Replace("\r\n", "\n"));
                 }
             }
             return result;
