@@ -8,7 +8,6 @@ using System.Windows.Forms;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
-using FlashDevelop;
 using HaXeContext;
 using PluginCore;
 using PluginCore.Controls;
@@ -582,7 +581,7 @@ namespace PostfixCodeCompletion
         Bitmap icon;
         public Bitmap Icon
         {
-            get { return icon ?? (icon = (Bitmap) Globals.MainForm.FindImage("341")); }
+            get { return icon ?? (icon = (Bitmap) PluginBase.MainForm.FindImage("341")); }
             set { icon = value; }
         }
 
