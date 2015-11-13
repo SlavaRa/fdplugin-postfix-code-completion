@@ -222,14 +222,11 @@ namespace PostfixCodeCompletion
         {
             if (expr == null || expr.IsNull()) return null;
             MemberModel member = expr.Member;
-            if (member != null
-                && !string.IsNullOrEmpty(member.Type)
-                && member.Type != ASContext.Context.Features.voidKey)
+            string voidKey = ASContext.Context.Features.voidKey;
+            if (member != null && !string.IsNullOrEmpty(member.Type) && member.Type != voidKey)
                 return member;
             ClassModel type = expr.Type;
-            if (type != null && !type.IsVoid()
-                && !string.IsNullOrEmpty(type.Type)
-                && type.Type != ASContext.Context.Features.voidKey)
+            if (type != null && !type.IsVoid() && !string.IsNullOrEmpty(type.Type) && type.Type != voidKey)
                 return type;
             return null;
         }
@@ -313,9 +310,9 @@ namespace PostfixCodeCompletion
                             classModel = classModel.Extends;
                         }
                     }
-                    break;
+                    return false;
+                default: return false;
             }
-            return false;
         }
 
         static bool IsIteratorOrIterable(MemberModel member)
@@ -347,7 +344,7 @@ namespace PostfixCodeCompletion
 
         static bool GetTargetIsString(MemberModel target)
         {
-            return target.Type == "String";
+            return target.Type == ASContext.Context.Features.stringKey;
         }
 
         static IEnumerable<ICompletionListItem> GetCompletionItems(string pattern, MemberModel target, ASResult expr)
