@@ -291,7 +291,7 @@ namespace PostfixCodeCompletion
 
         static bool GetTargetIsHash(MemberModel target)
         {
-            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
+            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower())
             {
                 case "as2":
                 case "as3":
@@ -373,7 +373,7 @@ namespace PostfixCodeCompletion
             Bitmap itemIcon = null;
             bool haxeStringCode = false;
             bool isHaxe = sci.ConfigurationLanguage.ToLower() == "haxe";
-            if (isHaxe && GetPostfixCompletionTarget(expr).Type == "String")
+            if (isHaxe && GetPostfixCompletionTarget(expr).Type == ASContext.Context.Features.stringKey)
             {
                 int pos = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
                 haxeStringCode = sci.CharAt(pos) == '"' && sci.CharAt(pos + 1) != '\\' && sci.CharAt(pos + 2) == '"';
@@ -486,7 +486,7 @@ namespace PostfixCodeCompletion
                     }
                     break;
                 default:
-                    completionModeHandler = new CompilerCompletionHandler(CreateHaxeProcess(""));
+                    completionModeHandler = new CompilerCompletionHandler(CreateHaxeProcess(string.Empty));
                     break;
             }
         }
@@ -511,7 +511,7 @@ namespace PostfixCodeCompletion
                 completionModeHandler.Stop();
                 completionModeHandler = null;
             }
-            completionModeHandler = new CompilerCompletionHandler(CreateHaxeProcess(""));
+            completionModeHandler = new CompilerCompletionHandler(CreateHaxeProcess(string.Empty));
         }
 
         static void OnFunctionTypeResult(HaxeComplete hc, HaxeCompleteResult result, HaxeCompleteStatus status)
