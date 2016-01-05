@@ -54,7 +54,6 @@ namespace PostfixCodeCompletion.Helpers
         #region ASGenerator.GetShortType(type)
         internal static string ASGeneratorGetShortType(string type)
         {
-            
             MethodInfo methodInfo = typeof(ASGenerator).GetMethod("GetShortType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
             return (string)methodInfo.Invoke(null, new object[] { type });
         }

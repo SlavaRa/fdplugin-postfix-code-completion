@@ -189,8 +189,9 @@ namespace PostfixCodeCompletion
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
             string word = sci.GetWordLeft(sci.CurrentPos - 1, false);
             CompletionList.Show(items, false, word);
-            completionListItemCount = Reflector.CompletionListCompletionList().Items.Count;
-            Reflector.CompletionListCompletionList().SelectedValueChanged += OnCompletionListSelectedValueChanged;
+            ListBox list = Reflector.CompletionListCompletionList();
+            completionListItemCount = list.Items.Count;
+            list.SelectedValueChanged += OnCompletionListSelectedValueChanged;
         }
 
         static ASResult GetPostfixCompletionExpr()
@@ -453,14 +454,16 @@ namespace PostfixCodeCompletion
 
         static void OnCompletionListVisibleChanged(object o, EventArgs args)
         {
-            if (Reflector.CompletionListCompletionList().Visible) UpdateCompletionList();
-            else Reflector.CompletionListCompletionList().SelectedValueChanged -= OnCompletionListSelectedValueChanged;
+            ListBox list = Reflector.CompletionListCompletionList();
+            if (list.Visible) UpdateCompletionList();
+            else list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
         }
 
         static void OnCompletionListSelectedValueChanged(object sender, EventArgs args)
         {
-            Reflector.CompletionListCompletionList().SelectedValueChanged -= OnCompletionListSelectedValueChanged;
-            if (completionListItemCount != Reflector.CompletionListCompletionList().Items.Count) UpdateCompletionList();
+            ListBox list = Reflector.CompletionListCompletionList();
+            list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
+            if (completionListItemCount != list.Items.Count) UpdateCompletionList();
         }
 
         static void OnHaxeCompletionModeChanged()
@@ -476,12 +479,13 @@ namespace PostfixCodeCompletion
             switch (settings.CompletionMode)
             {
                 case HaxeCompletionModeEnum.CompletionServer:
-                    if (settings.CompletionServerPort < 1024) completionModeHandler = new CompilerCompletionHandler(CreateHaxeProcess(""));
+                    if (settings.CompletionServerPort < 1024) completionModeHandler = new CompilerCompletionHandler(CreateHaxeProcess(string.Empty));
                     else
                     {
                         completionModeHandler = new CompletionServerCompletionHandler(
-                                CreateHaxeProcess("--wait " + settings.CompletionServerPort),
-                                settings.CompletionServerPort);
+                            CreateHaxeProcess("--wait " + settings.CompletionServerPort),
+                            settings.CompletionServerPort
+                        );
                         ((CompletionServerCompletionHandler)completionModeHandler).FallbackNeeded += OnHaxeContextFallbackNeeded;
                     }
                     break;
@@ -523,7 +527,8 @@ namespace PostfixCodeCompletion
                     if (hc.AutoHide) CompletionList.Hide();
                     break;
                 case HaxeCompleteStatus.Type:
-                    Reflector.CompletionListCompletionList().VisibleChanged -= OnCompletionListVisibleChanged;
+                    ListBox list = Reflector.CompletionListCompletionList();
+                    list.VisibleChanged -= OnCompletionListVisibleChanged;
                     ASResult expr = hc.Expr;
                     if (result.Type is ClassModel)
                     {
@@ -537,7 +542,7 @@ namespace PostfixCodeCompletion
                         expr.Member = result.Type;
                         UpdateCompletionList(expr.Member, expr);
                     }
-                    Reflector.CompletionListCompletionList().VisibleChanged += OnCompletionListVisibleChanged;
+                    list.VisibleChanged += OnCompletionListVisibleChanged;
                     break;
             }
         }
