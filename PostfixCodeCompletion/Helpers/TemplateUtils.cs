@@ -6,10 +6,10 @@ using System.Text.RegularExpressions;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
+using FlashDevelop.Utilities;
 using HaXeContext;
 using PluginCore;
 using PluginCore.Helpers;
-using PluginCore.Utilities;
 using ScintillaNet;
 
 namespace PostfixCodeCompletion.Helpers
@@ -180,7 +180,7 @@ namespace PostfixCodeCompletion.Helpers
             string result = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
             result = Regex.Replace(result, string.Format(PATTERN_BLOCK, pccpattern), snippet, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             result = ProcessMemberTemplate(result, expr);
-            result = ProcessCodeStyleLineBreaks(result);
+            result = ArgsProcessor.ProcessCodeStyleLineBreaks(result);
             result = result.Replace(SnippetHelper.ENTRYPOINT, "|");
             result = result.Replace(SnippetHelper.EXITPOINT, "|");
             return result;
@@ -196,59 +196,9 @@ namespace PostfixCodeCompletion.Helpers
             sci.SetSel(position, sci.CurrentPos);
             string snippet = Regex.Replace(template, string.Format(PATTERN_BLOCK, pccpattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             snippet = ProcessMemberTemplate(snippet, expr);
-            snippet = ProcessCodeStyleLineBreaks(snippet);
+            snippet = ArgsProcessor.ProcessCodeStyleLineBreaks(snippet);
             sci.ReplaceSel(string.Empty);
             SnippetHelper.InsertSnippetText(sci, position, snippet);
         }
-
-        #region XXX slavara: copy-paste from ArgsProcessor
-
-        /// <summary>
-        /// Gets the correct coding style line break chars
-        /// </summary>
-        static string ProcessCodeStyleLineBreaks(string text)
-        {
-            string CSLB = "$(CSLB)";
-            int nextIndex = text.IndexOf(CSLB);
-            if (nextIndex < 0) return text;
-            CodingStyle cs = PluginBase.MainForm.Settings.CodingStyle;
-            if (cs == CodingStyle.BracesOnLine) return text.Replace(CSLB, string.Empty);
-            int eolMode = (int)PluginBase.MainForm.Settings.EOLMode;
-            string lineBreak = LineEndDetector.GetNewLineMarker(eolMode);
-            string result = string.Empty;
-            int currentIndex = 0;
-            while (nextIndex >= 0)
-            {
-                result += text.Substring(currentIndex, nextIndex - currentIndex) + lineBreak + GetLineIndentation(text, nextIndex);
-                currentIndex = nextIndex + CSLB.Length;
-                nextIndex = text.IndexOf(CSLB, currentIndex);
-            }
-            return result + text.Substring(currentIndex);
-        }
-
-        /// <summary>
-        /// Gets the line intendation from the text
-        /// </summary>
-        static string GetLineIndentation(string text, int position)
-        {
-            char c;
-            int startPos = position;
-            while (startPos > 0)
-            {
-                c = text[startPos];
-                if (c == 10 || c == 13) break;
-                startPos--;
-            }
-            int endPos = ++startPos;
-            while (endPos < position)
-            {
-                c = text[endPos];
-                if (c != '\t' && c != ' ') break;
-                endPos++;
-            }
-            return text.Substring(startPos, endPos - startPos);
-        }
-
-        #endregion
     }
 }
