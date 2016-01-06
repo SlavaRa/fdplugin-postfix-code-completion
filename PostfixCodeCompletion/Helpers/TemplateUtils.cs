@@ -111,11 +111,11 @@ namespace PostfixCodeCompletion.Helpers
                 ClassModel cType = expr.Type;
                 if (cType != null && cType.Name != null) type = cType.QualifiedName;
             }
-            if (member != null && member.Name != null) varname = Reflector.ASGeneratorGuessVarName(member.Name, type);
+            if (member != null && member.Name != null) varname = Reflector.ASGenerator.GuessVarName(member.Name, type);
             if (!string.IsNullOrEmpty(word) && char.IsDigit(word[0])) word = null;
             if (!string.IsNullOrEmpty(word) && (string.IsNullOrEmpty(type) || Regex.IsMatch(type, "(<[^]]+>)"))) word = null;
             if (!string.IsNullOrEmpty(type) && type == ASContext.Context.Features.voidKey) type = null;
-            if (string.IsNullOrEmpty(varname)) varname = Reflector.ASGeneratorGuessVarName(word, type);
+            if (string.IsNullOrEmpty(varname)) varname = Reflector.ASGenerator.GuessVarName(word, type);
             if (!string.IsNullOrEmpty(varname) && varname == word && varname.Length == 1) varname = varname + "1";
             return new KeyValuePair<string, string>(varname, type);
         }
@@ -127,7 +127,7 @@ namespace PostfixCodeCompletion.Helpers
             string type = varNameToQualifiedName.Value;
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
             if (ASContext.Context is Context && Settings != null && Settings.DisableTypeDeclaration) type = null;
-            if (!string.IsNullOrEmpty(type)) type = MemberModel.FormatType(Reflector.ASGeneratorGetShortType(type));
+            if (!string.IsNullOrEmpty(type)) type = MemberModel.FormatType(Reflector.ASGenerator.GetShortType(type));
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", type);
             return template;
         }
@@ -137,7 +137,7 @@ namespace PostfixCodeCompletion.Helpers
             string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
             if (type.Contains("@")) type = type.Replace("@", ".<") + ">";
             type = Regex.Match(type, "<([^]]+)>").Groups[1].Value;
-            type = Reflector.ASGeneratorGetShortType(type);
+            type = Reflector.ASGenerator.GetShortType(type);
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
             {
                 case "as2":
@@ -156,7 +156,7 @@ namespace PostfixCodeCompletion.Helpers
                 case "as2":
                 case "as3":
                     string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
-                    type = Reflector.ASGeneratorGetShortType(type);
+                    type = Reflector.ASGenerator.GetShortType(type);
                     ContextFeatures features = ASContext.Context.Features;
                     string objectKey = features.objectKey;
                     if (type == objectKey || type == "Dictionary")

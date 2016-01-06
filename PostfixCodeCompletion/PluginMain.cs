@@ -77,14 +77,14 @@ namespace PostfixCodeCompletion
             switch (e.Type)
             {
                 case EventType.UIStarted:
-                    Reflector.CompletionListCompletionList().VisibleChanged += OnCompletionListVisibleChanged;
+                    Reflector.CompletionList.completionList.VisibleChanged += OnCompletionListVisibleChanged;
                     break;
                 case EventType.Command:
                     if (((DataEvent) e).Action == ProjectManagerEvents.Project)
                     {
                         if (!(PluginBase.CurrentProject is HaxeProject)) return;
                         Context context = (Context) ASContext.GetLanguageContext("haxe");
-                        ((HaXeSettings)context.Settings).CompletionModeChanged += OnHaxeCompletionModeChanged;
+                        ((HaXeSettings) context.Settings).CompletionModeChanged += OnHaxeCompletionModeChanged;
                         OnHaxeCompletionModeChanged();
                     }
                     break;
@@ -97,9 +97,9 @@ namespace PostfixCodeCompletion
                         e.Handled = ASComplete.OnShortcut(keys, PluginBase.MainForm.CurrentDocument.SciControl);
                         if (!CompletionList.Active)
                         {
-                            Reflector.CompletionListCompletionList().VisibleChanged -= OnCompletionListVisibleChanged;
+                            Reflector.CompletionList.completionList.VisibleChanged -= OnCompletionListVisibleChanged;
                             UpdateCompletionList(expr);
-                            Reflector.CompletionListCompletionList().VisibleChanged += OnCompletionListVisibleChanged;
+                            Reflector.CompletionList.completionList.VisibleChanged += OnCompletionListVisibleChanged;
                         }
                     }
                     break;
@@ -176,7 +176,7 @@ namespace PostfixCodeCompletion
             if (target == null) return;
             if (!TemplateUtils.GetHasTemplates()) return;
             List<ICompletionListItem> items = GetPostfixCompletionItems(target, expr);
-            List<ICompletionListItem> allItems = Reflector.CompletionListAllItems();
+            List<ICompletionListItem> allItems = Reflector.CompletionList.allItems;
             if (allItems != null)
             {
                 allItems = new List<ICompletionListItem>(allItems);
@@ -189,7 +189,7 @@ namespace PostfixCodeCompletion
             ScintillaControl sci = PluginBase.MainForm.CurrentDocument.SciControl;
             string word = sci.GetWordLeft(sci.CurrentPos - 1, false);
             CompletionList.Show(items, false, word);
-            ListBox list = Reflector.CompletionListCompletionList();
+            ListBox list = Reflector.CompletionList.completionList;
             completionListItemCount = list.Items.Count;
             list.SelectedValueChanged += OnCompletionListSelectedValueChanged;
         }
@@ -216,7 +216,7 @@ namespace PostfixCodeCompletion
             string line = sci.GetLine(currentLine);
             line = line.Remove(position);
             line = line.Insert(position, ";");
-            return Reflector.ASGeneratorGetStatementReturnType(sci, line, positionFromLine);
+            return Reflector.ASGenerator.GetStatementReturnType(sci, line, positionFromLine);
         }
 
         static MemberModel GetPostfixCompletionTarget(ASResult expr)
@@ -283,8 +283,8 @@ namespace PostfixCodeCompletion
                 case "as3":
                     return type.Contains("Vector.<") || type.Contains("@" + arrayKey);
                 case "haxe":
-                    return Reflector.ASGeneratorCleanType(type) == Reflector.ASGeneratorCleanType(arrayKey)
-                           || (type.Contains("Vector<") && Reflector.ASGeneratorCleanType(type) == Reflector.ASGeneratorCleanType("Vector<T>"));
+                    return Reflector.ASGenerator.CleanType(type) == Reflector.ASGenerator.CleanType(arrayKey)
+                        || (type.Contains("Vector<") && Reflector.ASGenerator.CleanType(type) == Reflector.ASGenerator.CleanType("Vector<T>"));
                 default:
                     return false;
             }
@@ -305,7 +305,7 @@ namespace PostfixCodeCompletion
                         ClassModel classModel = target as ClassModel;
                         while (classModel != null && !classModel.IsVoid())
                         {
-                            if (classModel.Members.Cast<MemberModel>().Any(IsIteratorOrIterable))
+                            if (classModel.Members.Items.Any(IsIteratorOrIterable))
                                 return true;
                             classModel.ResolveExtends();
                             classModel = classModel.Extends;
@@ -318,7 +318,7 @@ namespace PostfixCodeCompletion
 
         static bool IsIteratorOrIterable(MemberModel member)
         {
-            string cleanType = Reflector.ASGeneratorCleanType(member.Type);
+            string cleanType = Reflector.ASGenerator.CleanType(member.Type);
             return cleanType == "Iterator" || cleanType == "Iterable";
         }
 
@@ -441,27 +441,27 @@ namespace PostfixCodeCompletion
             if (sci.PositionIsOnComment(sci.CurrentPos)) return;
             if (ASComplete.OnChar(sci, value, false))
             {
-                if (Reflector.CompletionListCompletionList().Visible) UpdateCompletionList();
+                if (Reflector.CompletionList.completionList.Visible) UpdateCompletionList();
                 return;
             }
-            if (!Reflector.ASCompleteHandleDotCompletion(sci, true) || CompletionList.Active) return;
+            if (!Reflector.ASComplete.HandleDotCompletion(sci, true) || CompletionList.Active) return;
             ASResult expr = GetPostfixCompletionExpr();
             if (expr == null || expr.IsNull()) return;
-            Reflector.CompletionListCompletionList().VisibleChanged -= OnCompletionListVisibleChanged;
+            Reflector.CompletionList.completionList.VisibleChanged -= OnCompletionListVisibleChanged;
             UpdateCompletionList(expr);
-            Reflector.CompletionListCompletionList().VisibleChanged += OnCompletionListVisibleChanged;
+            Reflector.CompletionList.completionList.VisibleChanged += OnCompletionListVisibleChanged;
         }
 
         static void OnCompletionListVisibleChanged(object o, EventArgs args)
         {
-            ListBox list = Reflector.CompletionListCompletionList();
+            ListBox list = Reflector.CompletionList.completionList;
             if (list.Visible) UpdateCompletionList();
             else list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
         }
 
         static void OnCompletionListSelectedValueChanged(object sender, EventArgs args)
         {
-            ListBox list = Reflector.CompletionListCompletionList();
+            ListBox list = Reflector.CompletionList.completionList;
             list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
             if (completionListItemCount != list.Items.Count) UpdateCompletionList();
         }
@@ -527,7 +527,7 @@ namespace PostfixCodeCompletion
                     if (hc.AutoHide) CompletionList.Hide();
                     break;
                 case HaxeCompleteStatus.Type:
-                    ListBox list = Reflector.CompletionListCompletionList();
+                    ListBox list = Reflector.CompletionList.completionList;
                     list.VisibleChanged -= OnCompletionListVisibleChanged;
                     ASResult expr = hc.Expr;
                     if (result.Type is ClassModel)
