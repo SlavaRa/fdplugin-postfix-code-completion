@@ -40,21 +40,7 @@ namespace PostfixCodeCompletion.Helpers
             PATTERN_NUMBER,
             PATTERN_STRING
         };
-
-        internal static bool IsValidFileForCompletion(string fileName)
-        {
-            var language = string.Empty;
-            var ext = Path.GetExtension(fileName).TrimStart('.');
-            foreach (var it in PluginBase.MainForm.SciConfig.AllLanguages)
-            {
-                var extensions = it.fileextensions.Split(Convert.ToChar(","));
-                if (!extensions.Contains(ext)) continue;
-                language = it.name;
-                break;
-            }
-            return language.Length > 0 && GetHasTemplates(language);
-        }
-
+        
         internal static bool GetHasTemplates()
         {
             return GetHasTemplates(PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
