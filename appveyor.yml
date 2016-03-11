@@ -14,11 +14,11 @@ install:
 version: $(PLUGIN_VERSION).{build}
 skip_tags: true
 init:
-- git clone -q https://github.com/fdorg/flashdevelop.git C:\projects\FlashDevelop
+- git clone -q --branch=master https://github.com/fdorg/flashdevelop.git C:\projects\FlashDevelop
 matrix:
   fast_finish: true
 build: off
-before_build:
+build_script:
 - cd c:\
 - mv %APPVEYOR_BUILD_FOLDER% %PLUGIN_PATH%
 - nuget restore %PLUGIN_PATH%\%PLUGIN_NAME%.sln
