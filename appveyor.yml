@@ -23,7 +23,7 @@ build_script:
 - mv %APPVEYOR_BUILD_FOLDER% %PLUGIN_PATH%
 - nuget restore C:\projects\FlashDevelop\FlashDevelop.sln
 - nuget restore %PLUGIN_PATH%\%PLUGIN_NAME%.sln
-- msbuild /p:Configuration=Release /p:Platform=x86 /v:m FlashDevelop.sln
+- msbuild /p:Configuration=Release /p:Platform=x86 C:\projects\FlashDevelop\FlashDevelop.sln
 after_build:
 - mkdir %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins
 - mv %PLUGIN_DLL% %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins\%PLUGIN_NAME%.dll
