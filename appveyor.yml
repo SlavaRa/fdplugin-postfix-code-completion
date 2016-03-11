@@ -1,40 +1,65 @@
-init:
-- git clone -q https://github.com/fdorg/flashdevelop.git C:\projects\FlashDevelop
-version: 1.0.{build}
-platform:
-- x86
-configuration:
-- Release
 os: Visual Studio 2015
-skip_tags: true
 environment:
+  PLUGIN_VERSION: 1.0
   PLUGIN_NAME: PostfixCodeCompletion
+  PLUGIN_DESC: 
   PLUGIN_PATH: C:\projects\FlashDevelop\External\Plugins\PostfixCodeCompletion
+  PLUGIN_DLL:  C:\projects\FlashDevelop\FlashDevelop\Bin\Release\Plugins\PostfixCodeCompletion.dll
+  PLUGIN_INFO: 
+  PLUGIN_GITHUB_RELEASES: https:\/\/github.com\/SlavaRa\/fdplugin-postfix-code-completion\/releases
+  APPMAN_TEMPLATE: C:\projects\FlashDevelop\External\Plugins\PostfixCodeCompletion\appman.template
+  APPMAN_CONFIG_XML: appman.txt
 install:
 - set PATH=C:\Program Files (x86)\MSBuild\14.0\Bin;%PATH%
+version: $(PLUGIN_VERSION).{build}
+skip_tags: true
+init:
+- git clone -q --branch=master https://github.com/fdorg/flashdevelop.git C:\projects\FlashDevelop
 matrix:
   fast_finish: true
-before_build:
-- cd ..
+build: off
+build_script:
+- cd c:\
 - mv %APPVEYOR_BUILD_FOLDER% %PLUGIN_PATH%
-build:
-  project: $(PLUGIN_PATH)\$(PLUGIN_NAME).sln
+- nuget restore %PLUGIN_PATH%\%PLUGIN_NAME%.sln
+- msbuild /p:Configuration=Release /p:Platform="Any CPU" /v:m %PLUGIN_PATH%\%PLUGIN_NAME%.sln
 after_build:
 - mkdir %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins
-- mv C:\projects\FlashDevelop\FlashDevelop\Bin\Release\Plugins\%PLUGIN_NAME%.dll %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins\%PLUGIN_NAME%.dll
-- mv %PLUGIN_PATH%\Snippets $(BaseDir)\Snippets
+- mv %PLUGIN_DLL% %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins\%PLUGIN_NAME%.dll
+- mv %PLUGIN_PATH%\Snippets %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Snippets
 - cd %APPVEYOR_BUILD_FOLDER%
 - 7z a %PLUGIN_NAME%.zip $(BaseDir)\
 - mv %PLUGIN_NAME%.zip %PLUGIN_NAME%.fdz
+- cd %APPVEYOR_BUILD_FOLDER%
+- 7z a %PLUGIN_NAME%.zip $(BaseDir)\
+- mv %PLUGIN_NAME%.zip %PLUGIN_NAME%.fdz
+- rm -rf %APPVEYOR_BUILD_FOLDER%\$(BaseDir)
+- md5sum %PLUGIN_NAME%.fdz > checksum.md5
+- sed -e "s/.//" checksum.md5 > checksum.tmp.md5 && mv checksum.tmp.md5 checksum.md5
+- sed -e "s/ .*//" checksum.md5 > checksum.tmp.md5 && mv checksum.tmp.md5 checksum.md5
+- set /p CHECKSUM=<checksum.md5
+- rm checksum.md5
+- mv %APPMAN_TEMPLATE% %APPMAN_CONFIG_XML%
+- sed -i -e s/_ID_/quicknavigate/g %APPMAN_CONFIG_XML%
+- sed -i -e "s/_NAME_/%PLUGIN_NAME%/g" %APPMAN_CONFIG_XML%
+- sed -i -e "s/_DESC_/%PLUGIN_DESC%/g" %APPMAN_CONFIG_XML%
+- sed -i -e "s/_VERSION_/%PLUGIN_VERSION%/g" %APPMAN_CONFIG_XML%
+- sed -i -e "s/_BUILD_/%APPVEYOR_BUILD_NUMBER%/g" %APPMAN_CONFIG_XML%
+- sed -i -e "s/_INFO_/%PLUGIN_INFO%/g" %APPMAN_CONFIG_XML%
+- sed -i -e "s/_URL_/%PLUGIN_GITHUB_RELEASES%\/download\/%APPVEYOR_BUILD_VERSION%\/%PLUGIN_NAME%.fdz/g" %APPMAN_CONFIG_XML%
+- sed -i -e "s/_CHECKSUM_/%CHECKSUM%/g" %APPMAN_CONFIG_XML%
 artifacts:
-  - path: $(PLUGIN_NAME).fdz
-    name: $(PLUGIN_NAME)
-    type: zip
+- path: $(PLUGIN_NAME).fdz
+  name: $(PLUGIN_NAME)
+  type: zip
+- path: $(APPMAN_CONFIG_XML)
+  name: appman
+  type: txt
 deploy:
 - provider: GitHub
   release: $(appveyor_build_version)
   auth_token:
     secure: HK9ej9WVysHQHeTEQ/QTOJmh08xCtDQyDBy5uXWrWV/xROMNkQrTeQv1j2tYOxVw
-  artifact: /.*\.fdz/
+  artifact: /(.*\.fdz)|(appman.txt)/
   on:
     branch: master

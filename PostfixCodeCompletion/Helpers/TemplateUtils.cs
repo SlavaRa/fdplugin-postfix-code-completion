@@ -142,7 +142,7 @@ namespace PostfixCodeCompletion.Helpers
             {
                 case "as2":
                 case "as3":
-                    if (string.IsNullOrEmpty(type)) type = "*";
+                    if (string.IsNullOrEmpty(type)) type = ASContext.Context.Features.dynamicKey;
                     template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, "int");
                     break;
             }
@@ -157,11 +157,12 @@ namespace PostfixCodeCompletion.Helpers
                 case "as3":
                     string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
                     type = Reflector.ASGeneratorGetShortType(type);
-                    string objectKey = ASContext.Context.Features.objectKey;
+                    ContextFeatures features = ASContext.Context.Features;
+                    string objectKey = features.objectKey;
                     if (type == objectKey || type == "Dictionary")
                     {
-                        template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, type == objectKey ? "String" : objectKey);
-                        template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, "*");
+                        template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, type == objectKey ? features.stringKey : objectKey);
+                        template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, features.dynamicKey);
                     }
                     break;
             }
