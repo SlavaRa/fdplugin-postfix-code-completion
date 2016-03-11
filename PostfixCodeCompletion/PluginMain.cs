@@ -202,9 +202,9 @@ namespace PostfixCodeCompletion
             if (!ASContext.GetLanguageContext(language).IsFileValid || !TemplateUtils.GetHasTemplates(language)) return null;
             var sci = doc.SciControl;
             var currentLine = sci.CurrentLine;
-            var positionFromLine = sci.PositionFromLine(currentLine);
+            var positionFromLine = sci.LineIndentPosition(currentLine);
             var position = -1;
-            var characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
+            var characters = ScintillaControl.Configuration.GetLanguage(language).characterclass.Characters;
             for (var i = sci.CurrentPos; i > positionFromLine; i--)
             {
                 var c = (char) sci.CharAt(i);
@@ -217,7 +217,7 @@ namespace PostfixCodeCompletion
             }
             if (position == -1) return null;
             position -= positionFromLine;
-            var line = sci.GetLine(currentLine);
+            var line = sci.GetLine(currentLine).Trim();
             line = line.Remove(position);
             line = line.Insert(position, ";");
             return Reflector.ASGenerator.GetStatementReturnType(sci, line, positionFromLine);
