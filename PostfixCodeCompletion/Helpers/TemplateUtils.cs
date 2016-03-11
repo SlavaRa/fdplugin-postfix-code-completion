@@ -41,23 +41,47 @@ namespace PostfixCodeCompletion.Helpers
             PATTERN_STRING
         };
 
+        internal static bool IsValidFileForCompletion(string fileName)
+        {
+            var language = string.Empty;
+            var ext = Path.GetExtension(fileName).TrimStart('.');
+            foreach (var it in PluginBase.MainForm.SciConfig.AllLanguages)
+            {
+                var extensions = it.fileextensions.Split(Convert.ToChar(","));
+                if (!extensions.Contains(ext)) continue;
+                language = it.name;
+                break;
+            }
+            return language.Length > 0 && GetHasTemplates(language);
+        }
+
         internal static bool GetHasTemplates()
         {
-            return GetHasTemplates(PathHelper.SnippetDir)
-                || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path));
+            return GetHasTemplates(PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
         }
 
-        static bool GetHasTemplates(string path)
+        internal static bool GetHasTemplates(string language)
         {
-            path = GetTemplatesDir(path);
-            return Directory.Exists(path) && Directory.GetFiles(path, "*.fds").Length > 0;
+            return GetHasTemplates(PathHelper.SnippetDir, language)
+                || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path, language));
         }
 
-        static string GetTemplatesDir(string path)
+        static bool GetHasTemplates(string snippetPath, string language)
         {
-            path = Path.Combine(path, PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
-            path = Path.Combine(path, POSTFIX_GENERATORS);
-            return path;
+            snippetPath = GetTemplatesDir(snippetPath, language);
+            return Directory.Exists(snippetPath) && Directory.GetFiles(snippetPath, "*.fds").Length > 0;
+        }
+
+        static string GetTemplatesDir(string snippetPath)
+        {
+            return GetTemplatesDir(snippetPath, PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
+        }
+
+        static string GetTemplatesDir(string snippetPath, string language)
+        {
+            snippetPath = Path.Combine(snippetPath, language);
+            snippetPath = Path.Combine(snippetPath, POSTFIX_GENERATORS);
+            return snippetPath;
         }
 
         internal static Dictionary<string, string> GetTemplates(string type)
