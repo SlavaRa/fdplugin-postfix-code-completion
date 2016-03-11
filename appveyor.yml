@@ -14,7 +14,7 @@ install:
 version: $(PLUGIN_VERSION).{build}
 skip_tags: true
 init:
-- git clone -q --branch=feature/Plugins https://github.com/SlavaRa/flashdevelop-plugins.git C:\projects\FlashDevelop
+- git clone -q --branch=feature/Plugins-PCC https://github.com/SlavaRa/flashdevelop-plugins.git C:\projects\FlashDevelop
 matrix:
   fast_finish: true
 build: off
@@ -23,7 +23,7 @@ build_script:
 - mv %APPVEYOR_BUILD_FOLDER% %PLUGIN_PATH%
 - nuget restore C:\projects\FlashDevelop\FlashDevelop.sln
 - nuget restore %PLUGIN_PATH%\%PLUGIN_NAME%.sln
-- msbuild /p:Configuration=Release /p:Platform=x86 C:\projects\FlashDevelop\FlashDevelop.sln
+- msbuild /p:Configuration=Release /p:Platform=x86 /v:m C:\projects\FlashDevelop\FlashDevelop.sln
 after_build:
 - mkdir %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins
 - mv %PLUGIN_DLL% %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins\%PLUGIN_NAME%.dll
