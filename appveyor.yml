@@ -22,7 +22,7 @@ build_script:
 - cd c:\
 - mv %APPVEYOR_BUILD_FOLDER% %PLUGIN_PATH%
 - nuget restore C:\projects\FlashDevelop\FlashDevelop.sln
-- msbuild /p:Configuration=Release /p:Platform="Any CPU" /v:m C:\projects\FlashDevelop\FlashDevelop.sln
+- msbuild /p:Configuration=Debug /p:Platform="Any CPU" /v:m C:\projects\FlashDevelop\FlashDevelop.sln
 - nuget restore %PLUGIN_PATH%\%PLUGIN_NAME%.sln
 - msbuild /p:Configuration=Release /p:Platform="Any CPU" /v:m %PLUGIN_PATH%\%PLUGIN_NAME%.sln
 after_build:
