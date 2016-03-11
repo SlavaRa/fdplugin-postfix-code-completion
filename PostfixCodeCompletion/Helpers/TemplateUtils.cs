@@ -6,10 +6,10 @@ using System.Text.RegularExpressions;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
+using FlashDevelop.Utilities;
 using HaXeContext;
 using PluginCore;
 using PluginCore.Helpers;
-using PluginCore.Utilities;
 using ScintillaNet;
 
 namespace PostfixCodeCompletion.Helpers
@@ -41,23 +41,47 @@ namespace PostfixCodeCompletion.Helpers
             PATTERN_STRING
         };
 
+        internal static bool IsValidFileForCompletion(string fileName)
+        {
+            var language = string.Empty;
+            var ext = Path.GetExtension(fileName).TrimStart('.');
+            foreach (var it in PluginBase.MainForm.SciConfig.AllLanguages)
+            {
+                var extensions = it.fileextensions.Split(Convert.ToChar(","));
+                if (!extensions.Contains(ext)) continue;
+                language = it.name;
+                break;
+            }
+            return language.Length > 0 && GetHasTemplates(language);
+        }
+
         internal static bool GetHasTemplates()
         {
-            return GetHasTemplates(PathHelper.SnippetDir)
-                || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path));
+            return GetHasTemplates(PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
         }
 
-        static bool GetHasTemplates(string path)
+        internal static bool GetHasTemplates(string language)
         {
-            path = GetTemplatesDir(path);
-            return Directory.Exists(path) && Directory.GetFiles(path, "*.fds").Length > 0;
+            return GetHasTemplates(PathHelper.SnippetDir, language)
+                || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path, language));
         }
 
-        static string GetTemplatesDir(string path)
+        static bool GetHasTemplates(string snippetPath, string language)
         {
-            path = Path.Combine(path, PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
-            path = Path.Combine(path, POSTFIX_GENERATORS);
-            return path;
+            snippetPath = GetTemplatesDir(snippetPath, language);
+            return Directory.Exists(snippetPath) && Directory.GetFiles(snippetPath, "*.fds").Length > 0;
+        }
+
+        static string GetTemplatesDir(string snippetPath)
+        {
+            return GetTemplatesDir(snippetPath, PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
+        }
+
+        static string GetTemplatesDir(string snippetPath, string language)
+        {
+            snippetPath = Path.Combine(snippetPath, language);
+            snippetPath = Path.Combine(snippetPath, POSTFIX_GENERATORS);
+            return snippetPath;
         }
 
         internal static Dictionary<string, string> GetTemplates(string type)
@@ -111,11 +135,11 @@ namespace PostfixCodeCompletion.Helpers
                 ClassModel cType = expr.Type;
                 if (cType != null && cType.Name != null) type = cType.QualifiedName;
             }
-            if (member != null && member.Name != null) varname = Reflector.ASGeneratorGuessVarName(member.Name, type);
+            if (member != null && member.Name != null) varname = Reflector.ASGenerator.GuessVarName(member.Name, type);
             if (!string.IsNullOrEmpty(word) && char.IsDigit(word[0])) word = null;
             if (!string.IsNullOrEmpty(word) && (string.IsNullOrEmpty(type) || Regex.IsMatch(type, "(<[^]]+>)"))) word = null;
             if (!string.IsNullOrEmpty(type) && type == ASContext.Context.Features.voidKey) type = null;
-            if (string.IsNullOrEmpty(varname)) varname = Reflector.ASGeneratorGuessVarName(word, type);
+            if (string.IsNullOrEmpty(varname)) varname = Reflector.ASGenerator.GuessVarName(word, type);
             if (!string.IsNullOrEmpty(varname) && varname == word && varname.Length == 1) varname = varname + "1";
             return new KeyValuePair<string, string>(varname, type);
         }
@@ -127,7 +151,7 @@ namespace PostfixCodeCompletion.Helpers
             string type = varNameToQualifiedName.Value;
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
             if (ASContext.Context is Context && Settings != null && Settings.DisableTypeDeclaration) type = null;
-            if (!string.IsNullOrEmpty(type)) type = MemberModel.FormatType(Reflector.ASGeneratorGetShortType(type));
+            if (!string.IsNullOrEmpty(type)) type = MemberModel.FormatType(Reflector.ASGenerator.GetShortType(type));
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Type", type);
             return template;
         }
@@ -137,7 +161,7 @@ namespace PostfixCodeCompletion.Helpers
             string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
             if (type.Contains("@")) type = type.Replace("@", ".<") + ">";
             type = Regex.Match(type, "<([^]]+)>").Groups[1].Value;
-            type = Reflector.ASGeneratorGetShortType(type);
+            type = Reflector.ASGenerator.GetShortType(type);
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
             {
                 case "as2":
@@ -156,7 +180,7 @@ namespace PostfixCodeCompletion.Helpers
                 case "as2":
                 case "as3":
                     string type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
-                    type = Reflector.ASGeneratorGetShortType(type);
+                    type = Reflector.ASGenerator.GetShortType(type);
                     ContextFeatures features = ASContext.Context.Features;
                     string objectKey = features.objectKey;
                     if (type == objectKey || type == "Dictionary")
@@ -180,7 +204,7 @@ namespace PostfixCodeCompletion.Helpers
             string result = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
             result = Regex.Replace(result, string.Format(PATTERN_BLOCK, pccpattern), snippet, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             result = ProcessMemberTemplate(result, expr);
-            result = ProcessCodeStyleLineBreaks(result);
+            result = ArgsProcessor.ProcessCodeStyleLineBreaks(result);
             result = result.Replace(SnippetHelper.ENTRYPOINT, "|");
             result = result.Replace(SnippetHelper.EXITPOINT, "|");
             return result;
@@ -196,59 +220,9 @@ namespace PostfixCodeCompletion.Helpers
             sci.SetSel(position, sci.CurrentPos);
             string snippet = Regex.Replace(template, string.Format(PATTERN_BLOCK, pccpattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             snippet = ProcessMemberTemplate(snippet, expr);
-            snippet = ProcessCodeStyleLineBreaks(snippet);
+            snippet = ArgsProcessor.ProcessCodeStyleLineBreaks(snippet);
             sci.ReplaceSel(string.Empty);
             SnippetHelper.InsertSnippetText(sci, position, snippet);
         }
-
-        #region XXX slavara: copy-paste from ArgsProcessor
-
-        /// <summary>
-        /// Gets the correct coding style line break chars
-        /// </summary>
-        static string ProcessCodeStyleLineBreaks(string text)
-        {
-            string CSLB = "$(CSLB)";
-            int nextIndex = text.IndexOf(CSLB);
-            if (nextIndex < 0) return text;
-            CodingStyle cs = PluginBase.MainForm.Settings.CodingStyle;
-            if (cs == CodingStyle.BracesOnLine) return text.Replace(CSLB, string.Empty);
-            int eolMode = (int)PluginBase.MainForm.Settings.EOLMode;
-            string lineBreak = LineEndDetector.GetNewLineMarker(eolMode);
-            string result = string.Empty;
-            int currentIndex = 0;
-            while (nextIndex >= 0)
-            {
-                result += text.Substring(currentIndex, nextIndex - currentIndex) + lineBreak + GetLineIndentation(text, nextIndex);
-                currentIndex = nextIndex + CSLB.Length;
-                nextIndex = text.IndexOf(CSLB, currentIndex);
-            }
-            return result + text.Substring(currentIndex);
-        }
-
-        /// <summary>
-        /// Gets the line intendation from the text
-        /// </summary>
-        static string GetLineIndentation(string text, int position)
-        {
-            char c;
-            int startPos = position;
-            while (startPos > 0)
-            {
-                c = text[startPos];
-                if (c == 10 || c == 13) break;
-                startPos--;
-            }
-            int endPos = ++startPos;
-            while (endPos < position)
-            {
-                c = text[endPos];
-                if (c != '\t' && c != ' ') break;
-                endPos++;
-            }
-            return text.Substring(startPos, endPos - startPos);
-        }
-
-        #endregion
     }
 }
