@@ -14,7 +14,7 @@ install:
 version: $(PLUGIN_VERSION).{build}
 skip_tags: true
 init:
-- git clone -q --branch=Plugins https://github.com/SlavaRa/flashdevelop-plugins.git C:\projects\FlashDevelop
+- git clone -q --branch=feature/Plugins https://github.com/SlavaRa/flashdevelop-plugins.git C:\projects\FlashDevelop
 matrix:
   fast_finish: true
 build: off
