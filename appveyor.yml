@@ -31,9 +31,6 @@ after_build:
 - cd %APPVEYOR_BUILD_FOLDER%
 - 7z a %PLUGIN_NAME%.zip $(BaseDir)\
 - mv %PLUGIN_NAME%.zip %PLUGIN_NAME%.fdz
-- cd %APPVEYOR_BUILD_FOLDER%
-- 7z a %PLUGIN_NAME%.zip $(BaseDir)\
-- mv %PLUGIN_NAME%.zip %PLUGIN_NAME%.fdz
 - rm -rf %APPVEYOR_BUILD_FOLDER%\$(BaseDir)
 - md5sum %PLUGIN_NAME%.fdz > checksum.md5
 - sed -e "s/.//" checksum.md5 > checksum.tmp.md5 && mv checksum.tmp.md5 checksum.md5
