@@ -197,7 +197,9 @@ namespace PostfixCodeCompletion
         static ASResult GetPostfixCompletionExpr()
         {
             var doc = PluginBase.MainForm.CurrentDocument;
-            if (!TemplateUtils.IsValidFileForCompletion(doc.FileName)) return null;
+            if (doc == null || !doc.IsEditable) return null;
+            var language = PluginBase.CurrentProject.Language;
+            if (!ASContext.GetLanguageContext(language).IsFileValid || !TemplateUtils.GetHasTemplates(language)) return null;
             var sci = doc.SciControl;
             var currentLine = sci.CurrentLine;
             var positionFromLine = sci.PositionFromLine(currentLine);
