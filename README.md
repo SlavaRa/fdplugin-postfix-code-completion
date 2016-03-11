@@ -6,8 +6,11 @@ PostfixCodeCompletion plugin for FlashDevelop
 * FlashDevelop 5.0.1 or never.
 * Haxe 3.2.0 or never for haxe projects.
 
-## Downloads
-fdz: https://github.com/SlavaRa/fd-postfix-code-completion-plugin/raw/master/PostfixCodeCompletion-alpha-1.5.fdz
+### Installation
+
+Download the latest release. Open the .fdz file with FlashDevelop.
+
+https://github.com/SlavaRa/fdplugin-postfix-code-completion/releases
 
 ## Features
 Coming soon
