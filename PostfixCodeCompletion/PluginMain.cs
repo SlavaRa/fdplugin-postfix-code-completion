@@ -495,7 +495,7 @@ namespace PostfixCodeCompletion
                     else
                     {
                         completionModeHandler = new CompletionServerCompletionHandler(
-                            CreateHaxeProcess("--wait " + settings.CompletionServerPort),
+                            CreateHaxeProcess($"--wait {settings.CompletionServerPort}"),
                             settings.CompletionServerPort
                         );
                         ((CompletionServerCompletionHandler)completionModeHandler).FallbackNeeded += OnHaxeContextFallbackNeeded;

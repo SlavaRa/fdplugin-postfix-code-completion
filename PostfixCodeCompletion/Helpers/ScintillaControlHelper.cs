@@ -8,17 +8,17 @@ namespace PostfixCodeCompletion.Helpers
     {
         internal static int GetExpressionStartPosition(ScintillaControl sci, int position, ASResult expr)
         {
-            string characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
-            int result = 0;
-            int arrCount = 0;
-            int parCount = 0;
-            int genCount = 0;
-            int braCount = 0;
-            int dQuotes = 0;
-            int sQuotes = 0;
-            for (int i = position; i > 0; i--)
+            var characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
+            var result = 0;
+            var arrCount = 0;
+            var parCount = 0;
+            var genCount = 0;
+            var braCount = 0;
+            var dQuotes = 0;
+            var sQuotes = 0;
+            for (var i = position; i > 0; i--)
             {
-                char c = (char)sci.CharAt(i - 1);
+                var c = (char)sci.CharAt(i - 1);
                 if (c == ']') arrCount++;
                 else if (c == '[' && arrCount > 0) arrCount--;
                 else if (c == ')') parCount++;
@@ -54,10 +54,10 @@ namespace PostfixCodeCompletion.Helpers
 
         internal static int GetWordLeftStartPosition(ScintillaControl sci, int position, bool skipWhiteSpace)
         {
-            string characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
+            var characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
             while (position >= 0)
             {
-                char c = (char) sci.CharAt(position);
+                var c = (char) sci.CharAt(position);
                 if (c <= ' ')
                 {
                     if (!skipWhiteSpace) return position + 1;
@@ -71,7 +71,7 @@ namespace PostfixCodeCompletion.Helpers
 
         internal static int GetDotLeftStartPosition(ScintillaControl sci, int position)
         {
-            for (int i = sci.CurrentPos; i > 0; i--)
+            for (var i = sci.CurrentPos; i > 0; i--)
             {
                 if ((char)sci.CharAt(i) != '.') continue;
                 position = i;
