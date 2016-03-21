@@ -201,6 +201,7 @@ namespace PostfixCodeCompletion
             var language = PluginBase.CurrentProject.Language;
             if (!ASContext.GetLanguageContext(language).IsFileValid || !TemplateUtils.GetHasTemplates(language)) return null;
             var sci = doc.SciControl;
+            if (sci.PositionIsOnComment(sci.CurrentPos)) return null;
             var currentLine = sci.CurrentLine;
             var positionFromLine = sci.LineIndentPosition(currentLine);
             var position = -1;
