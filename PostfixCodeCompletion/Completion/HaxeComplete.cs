@@ -50,8 +50,8 @@ namespace PostfixCodeCompletion.Completion
 
         static string GetTempFileName()
         {
-            string tempFolder = Path.Combine(Path.GetTempPath(), "FlashDevelop");
-            string projDirectoryName = Path.GetDirectoryName(PluginBase.CurrentProject.ProjectPath);
+            var tempFolder = Path.Combine(Path.GetTempPath(), "FlashDevelop");
+            var projDirectoryName = Path.GetDirectoryName(PluginBase.CurrentProject.ProjectPath);
             projDirectoryName = Path.GetDirectoryName(projDirectoryName);
             return PluginBase.MainForm.CurrentDocument.FileName.Replace(projDirectoryName, tempFolder);
         }
@@ -60,9 +60,9 @@ namespace PostfixCodeCompletion.Completion
         {
             var pos = Sci.CurrentPos;
             Sci.SetSel(pos, Expr.Context.Position);
-            string selText = Sci.SelText;
+            var selText = Sci.SelText;
             Sci.ReplaceSel(string.Empty);
-            string directoryName = Path.GetDirectoryName(tempFileName);
+            var directoryName = Path.GetDirectoryName(tempFileName);
             if (!Directory.Exists(directoryName)) Directory.CreateDirectory(directoryName);
             FileHelper.WriteFile(tempFileName, Sci.Text, Sci.Encoding, false);
             if (!string.IsNullOrEmpty(selText))
@@ -102,7 +102,7 @@ namespace PostfixCodeCompletion.Completion
             {
                 "-cp " + Path.GetDirectoryName(tempFileName)
             };
-            string mode = "";
+            var mode = "";
             if (CompilerService == HaxeCompilerService.Type) mode = "@type";
             hxmlArgs.Insert(0, string.Format("--display {0}@{1}{2}", tempFileName, pos, mode));
             hxmlArgs.Insert(1, "-D use_rtti_doc");
@@ -132,7 +132,7 @@ namespace PostfixCodeCompletion.Completion
             {
                 using (TextReader stream = new StringReader(lines))
                 {
-                    using (XmlTextReader reader = new XmlTextReader(stream))
+                    using (var reader = new XmlTextReader(stream))
                     {
                         return ProcessResponse(reader);
                     }
@@ -159,8 +159,8 @@ namespace PostfixCodeCompletion.Completion
 
         void ProcessType(XmlReader reader)
         {
-            string[] parts = Expr.Context.Value.Split('.');
-            string name = parts[parts.Length - 1];
+            var parts = Expr.Context.Value.Split('.');
+            var name = parts[parts.Length - 1];
             var type = new MemberModel {Name = name};
             ExtractType(reader, type);
             result.Type = type;
@@ -176,14 +176,14 @@ namespace PostfixCodeCompletion.Completion
             }
             else
             {
-                string[] types = type.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
+                var types = type.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
                 if (types.Length > 1)
                 {
                     member.Flags = FlagType.Function;
                     member.Parameters = new List<MemberModel>();
-                    for (int i = 0; i < types.Length - 1; i++)
+                    for (var i = 0; i < types.Length - 1; i++)
                     {
-                        MemberModel param = new MemberModel(types[i].Trim(), string.Empty, FlagType.ParameterVar, Visibility.Public);
+                        var param = new MemberModel(types[i].Trim(), string.Empty, FlagType.ParameterVar, Visibility.Public);
                         member.Parameters.Add(param);
                     }
                     member.Type = types[types.Length - 1].Trim();

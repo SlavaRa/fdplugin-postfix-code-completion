@@ -87,8 +87,7 @@ namespace PostfixCodeCompletion.Completion
 
         void OnErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            if (e.Data == null) return;
-            if (!Regex.IsMatch(e.Data, "Error.*--wait")) return;
+            if (e.Data == null || !Regex.IsMatch(e.Data, "Error.*--wait")) return;
             if (!failure && FallbackNeeded != null) FallbackNeeded(true);
             failure = true;
         }
