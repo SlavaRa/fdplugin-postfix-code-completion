@@ -77,6 +77,7 @@ namespace PostfixCodeCompletion
             switch (e.Type)
             {
                 case EventType.UIStarted:
+                    Reflector.CompletionList.completionList.VisibleChanged -= OnCompletionListVisibleChanged;
                     Reflector.CompletionList.completionList.VisibleChanged += OnCompletionListVisibleChanged;
                     break;
                 case EventType.Command:
@@ -84,7 +85,10 @@ namespace PostfixCodeCompletion
                     {
                         if (!(PluginBase.CurrentProject is HaxeProject)) return;
                         var context = (Context) ASContext.GetLanguageContext("haxe");
-                        ((HaXeSettings) context.Settings).CompletionModeChanged += OnHaxeCompletionModeChanged;
+                        if (context == null) return;
+                        var settings = (HaXeSettings) context.Settings;
+                        settings.CompletionModeChanged -= OnHaxeCompletionModeChanged;
+                        settings.CompletionModeChanged += OnHaxeCompletionModeChanged;
                         OnHaxeCompletionModeChanged();
                     }
                     break;
