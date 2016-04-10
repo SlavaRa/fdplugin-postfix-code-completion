@@ -65,7 +65,7 @@ namespace PostfixCodeCompletion
         /// </summary>
         public void Dispose()
         {
-            if (completionModeHandler != null) completionModeHandler.Stop();
+            completionModeHandler?.Stop();
             SaveSettings();
         }
 
@@ -74,17 +74,22 @@ namespace PostfixCodeCompletion
         /// </summary>
         public void HandleEvent(object sender, NotifyEvent e, HandlingPriority priority)
         {
+            var completionList = Reflector.CompletionList.completionList;
             switch (e.Type)
             {
                 case EventType.UIStarted:
-                    Reflector.CompletionList.completionList.VisibleChanged += OnCompletionListVisibleChanged;
+                    completionList.VisibleChanged -= OnCompletionListVisibleChanged;
+                    completionList.VisibleChanged += OnCompletionListVisibleChanged;
                     break;
                 case EventType.Command:
                     if (((DataEvent) e).Action == ProjectManagerEvents.Project)
                     {
                         if (!(PluginBase.CurrentProject is HaxeProject)) return;
                         var context = (Context) ASContext.GetLanguageContext("haxe");
-                        ((HaXeSettings) context.Settings).CompletionModeChanged += OnHaxeCompletionModeChanged;
+                        if (context == null) return;
+                        var settings = (HaXeSettings) context.Settings;
+                        settings.CompletionModeChanged -= OnHaxeCompletionModeChanged;
+                        settings.CompletionModeChanged += OnHaxeCompletionModeChanged;
                         OnHaxeCompletionModeChanged();
                     }
                     break;
@@ -92,15 +97,13 @@ namespace PostfixCodeCompletion
                     var keys = ((KeyEvent) e).Value;
                     if (keys == (Keys.Control | Keys.Space))
                     {
+                        if (CompletionList.Active) return;
                         var expr = GetPostfixCompletionExpr();
                         if (expr == null || expr.IsNull()) return;
                         e.Handled = ASComplete.OnShortcut(keys, PluginBase.MainForm.CurrentDocument.SciControl);
-                        if (!CompletionList.Active)
-                        {
-                            Reflector.CompletionList.completionList.VisibleChanged -= OnCompletionListVisibleChanged;
-                            UpdateCompletionList(expr);
-                            Reflector.CompletionList.completionList.VisibleChanged += OnCompletionListVisibleChanged;
-                        }
+                        completionList.VisibleChanged -= OnCompletionListVisibleChanged;
+                        UpdateCompletionList(expr);
+                        completionList.VisibleChanged += OnCompletionListVisibleChanged;
                     }
                     break;
             }
@@ -144,14 +147,12 @@ namespace PostfixCodeCompletion
         /// <summary>
         /// Saves the plugin settings
         /// </summary>
-        void SaveSettings()
-        {
-            ObjectSerializer.Serialize(settingFilename, Settings);
-        }
+        void SaveSettings() => ObjectSerializer.Serialize(settingFilename, Settings);
 
         static void UpdateCompletionList()
         {
-            UpdateCompletionList(GetPostfixCompletionExpr());
+            var expr = GetPostfixCompletionExpr();
+            UpdateCompletionList(expr);
         }
 
         static void UpdateCompletionList(ASResult expr)
@@ -163,10 +164,9 @@ namespace PostfixCodeCompletion
                 UpdateCompletionList(target, expr);
                 return;
             }
-            if (completionModeHandler == null) return;
+            if (expr.Context == null || completionModeHandler == null) return;
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            if (sci.ConfigurationLanguage.ToLower() != "haxe" || expr.Context == null || sci.CharAt(expr.Context.Position) != '.')
-                return;
+            if (sci.ConfigurationLanguage.ToLower() != "haxe" || sci.CharAt(expr.Context.Position) != '.') return;
             var hc = new HaxeComplete(sci, expr, false, completionModeHandler, HaxeCompilerService.Type);
             hc.GetPositionType(OnFunctionTypeResult);
         }
@@ -179,10 +179,15 @@ namespace PostfixCodeCompletion
             var allItems = Reflector.CompletionList.allItems;
             if (allItems != null)
             {
-                allItems = new List<ICompletionListItem>(allItems);
+                var labels = new HashSet<string>();
+                foreach (var item in allItems)
+                {
+                    labels.Add(item.Label);
+                }
                 foreach (var item in items)
                 {
-                    if (!allItems.Exists(it => it.Label == item.Label)) allItems.Add(item);
+                    var label = item.Label;
+                    if (!labels.Contains(label)) allItems.Add(item);
                 }
                 items = allItems;
             }
@@ -191,6 +196,7 @@ namespace PostfixCodeCompletion
             CompletionList.Show(items, false, word);
             var list = Reflector.CompletionList.completionList;
             completionListItemCount = list.Items.Count;
+            list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
             list.SelectedValueChanged += OnCompletionListSelectedValueChanged;
         }
 
@@ -243,12 +249,9 @@ namespace PostfixCodeCompletion
             if (expr.Member != null) result.AddRange(GetCompletionItems(expr.Member.Type, target, expr));
             else if (expr.Type != null) result.AddRange(GetCompletionItems(expr.Type.Type, target, expr));
             result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_MEMBER, expr));
-            if (GetTargetIsNullable(target))
-                result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NULLABLE, expr));
-            if (GetTargetIsCollection(target))
-                result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
-            if (GetTargetIsHash(target))
-                result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_HASH, expr));
+            if (IsNullable(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NULLABLE, expr));
+            if (IsCollection(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
+            if (IsHash(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_HASH, expr));
             if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower() == "haxe")
             {
                 var type = expr.Type != null && !string.IsNullOrEmpty(expr.Type.Type) &&
@@ -257,27 +260,19 @@ namespace PostfixCodeCompletion
                     : null;
                 if (type != null)
                 {
-                    if (GetTargetIsCollection(type))
-                        result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
-                    if (GetTargetIsHash(type))
-                        result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_HASH, expr));
+                    if (IsCollection(type)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
+                    if (IsHash(type)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_HASH, expr));
                 }
             }
-            if (GetTargetIsBoolean(target))
-                result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_BOOL, expr));
-            if (GetTargetIsNumber(target))
-                result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NUMBER, expr));
-            if (GetTargetIsString(target))
-                result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_STRING, expr));
+            if (IsBoolean(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_BOOL, expr));
+            if (IsNumber(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NUMBER, expr));
+            if (IsString(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_STRING, expr));
             return result.Distinct().ToList();
         }
 
-        static bool GetTargetIsNullable(MemberModel target)
-        {
-            return !GetTargetIsNumber(target) && target.Type != ASContext.Context.Features.booleanKey;
-        }
+        static bool IsNullable(MemberModel target) => !IsNumber(target) && target.Type != ASContext.Context.Features.booleanKey;
 
-        static bool GetTargetIsCollection(MemberModel target)
+        static bool IsCollection(MemberModel target)
         {
             var type = target.Type;
             var arrayKey = ASContext.Context.Features.arrayKey;
@@ -286,7 +281,7 @@ namespace PostfixCodeCompletion
             {
                 case "as2":
                 case "as3":
-                    return type.Contains("Vector.<") || type.Contains("@" + arrayKey);
+                    return type.Contains("Vector.<") || type.Contains($"@{arrayKey}");
                 case "haxe":
                     return Reflector.ASGenerator.CleanType(type) == Reflector.ASGenerator.CleanType(arrayKey)
                         || (type.Contains("Vector<") && Reflector.ASGenerator.CleanType(type) == Reflector.ASGenerator.CleanType("Vector<T>"));
@@ -295,7 +290,7 @@ namespace PostfixCodeCompletion
             }
         }
 
-        static bool GetTargetIsHash(MemberModel target)
+        static bool IsHash(MemberModel target)
         {
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower())
             {
@@ -327,12 +322,9 @@ namespace PostfixCodeCompletion
             return cleanType == "Iterator" || cleanType == "Iterable";
         }
 
-        static bool GetTargetIsBoolean(MemberModel target)
-        {
-            return target.Type == ASContext.Context.Features.booleanKey;
-        }
+        static bool IsBoolean(MemberModel target) => target.Type == ASContext.Context.Features.booleanKey;
 
-        static bool GetTargetIsNumber(MemberModel target)
+        static bool IsNumber(MemberModel target)
         {
             var type = target.Type;
             if (type == ASContext.Context.Features.numberKey) return true;
@@ -348,10 +340,7 @@ namespace PostfixCodeCompletion
             }
         }
 
-        static bool GetTargetIsString(MemberModel target)
-        {
-            return target.Type == ASContext.Context.Features.stringKey;
-        }
+        static bool IsString(MemberModel target) => target.Type == ASContext.Context.Features.stringKey;
 
         static IEnumerable<ICompletionListItem> GetCompletionItems(string pattern, MemberModel target, ASResult expr)
         {
@@ -460,7 +449,6 @@ namespace PostfixCodeCompletion
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
                 ErrorManager.ShowError(e);
             }
         }
