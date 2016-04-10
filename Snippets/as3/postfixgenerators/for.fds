@@ -1,9 +1,9 @@
-#pcc:Collection
-for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(Collection).length; $(ItmUniqueVar)++) $(CSLB){
+#pcc:PCCCollection
+for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(PCCCollection).length; $(ItmUniqueVar)++) $(CSLB){
 	$(EntryPoint)
 }
-#pcc:Number
-for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(Number); $(ItmUniqueVar)++) $(CSLB){
+#pcc:PCCNumber
+for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(PCCNumber); $(ItmUniqueVar)++) $(CSLB){
 	$(EntryPoint)
 }
 #pcc:int

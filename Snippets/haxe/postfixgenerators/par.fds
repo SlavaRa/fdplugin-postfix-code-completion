@@ -1,1 +1,1 @@
-($(Member)$(EntryPoint))
+($(PCCMember)$(EntryPoint))

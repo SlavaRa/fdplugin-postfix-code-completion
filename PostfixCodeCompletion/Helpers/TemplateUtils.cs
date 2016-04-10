@@ -10,7 +10,6 @@ using FlashDevelop.Utilities;
 using HaXeContext;
 using PluginCore;
 using PluginCore.Helpers;
-using ScintillaNet;
 
 namespace PostfixCodeCompletion.Helpers
 {
@@ -19,15 +18,15 @@ namespace PostfixCodeCompletion.Helpers
         public const string PATTERN_BLOCK = @"\$\([^\)]*{0}.*?\)";
         public const string PATTERN_T_BLOCK = @"[^\$]*?\$\({0}\)";
         internal const string POSTFIX_GENERATORS = "PostfixGenerators";
-        internal const string PATTERN_MEMBER = "Member";
-        internal const string PATTERN_NULLABLE = "Nullable";
-        internal const string PATTERN_COLLECTION = "Collection";
+        internal const string PATTERN_MEMBER = "PCCMember";
+        internal const string PATTERN_NULLABLE = "PCCNullable";
+        internal const string PATTERN_COLLECTION = "PCCCollection";
         internal const string PATTERN_COLLECTION_KEY_TYPE = "$(CollectionKeyType)";
         internal const string PATTERN_COLLECTION_ITEM_TYPE = "$(CollectionItemType)";
-        internal const string PATTERN_HASH = "Hash";
-        internal const string PATTERN_BOOL = "Boolean";
-        internal const string PATTERN_NUMBER = "Number";
-        internal const string PATTERN_STRING = "String";
+        internal const string PATTERN_HASH = "PCCHash";
+        internal const string PATTERN_BOOL = "PCCBoolean";
+        internal const string PATTERN_NUMBER = "PCCNumber";
+        internal const string PATTERN_STRING = "PCCString";
         internal const string PATTERN_TYPE = "PCCType";
         public static Settings Settings { get; set; }
 
@@ -115,7 +114,11 @@ namespace PostfixCodeCompletion.Helpers
         {
             string type = null;
             var varname = string.Empty;
-            var word = string.Empty;
+            var sci = PluginBase.MainForm.CurrentDocument.SciControl;
+            var lineNum = sci.CurrentLine;
+            var line = sci.GetLine(lineNum);
+            var returnType = Reflector.ASGenerator.GetStatementReturnType(sci, line, sci.PositionFromLine(lineNum));
+            var word = returnType?.Word;
             var member = expr.Member;
             if (member != null && member.Type != null) type = member.Type;
             else
@@ -128,7 +131,7 @@ namespace PostfixCodeCompletion.Helpers
             if (!string.IsNullOrEmpty(word) && (string.IsNullOrEmpty(type) || Regex.IsMatch(type, "(<[^]]+>)"))) word = null;
             if (!string.IsNullOrEmpty(type) && type == ASContext.Context.Features.voidKey) type = null;
             if (string.IsNullOrEmpty(varname)) varname = Reflector.ASGenerator.GuessVarName(word, type);
-            if (!string.IsNullOrEmpty(varname) && varname == word && varname.Length == 1) varname = varname + "1";
+            if (!string.IsNullOrEmpty(varname) && varname == word) varname = $"{varname}1";
             return new KeyValuePair<string, string>(varname, type);
         }
 
@@ -147,7 +150,7 @@ namespace PostfixCodeCompletion.Helpers
         internal static string ProcessCollectionTemplate(string template, ASResult expr)
         {
             var type = expr.Member != null ? expr.Member.Type : expr.Type.QualifiedName;
-            if (type.Contains("@")) type = type.Replace("@", ".<") + ">";
+            if (type.Contains("@")) type = $"{type.Replace("@", ".<")}>";
             type = Regex.Match(type, "<([^]]+)>").Groups[1].Value;
             type = Reflector.ASGenerator.GetShortType(type);
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
