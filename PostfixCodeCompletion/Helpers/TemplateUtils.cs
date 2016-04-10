@@ -28,6 +28,7 @@ namespace PostfixCodeCompletion.Helpers
         internal const string PATTERN_BOOL = "Boolean";
         internal const string PATTERN_NUMBER = "Number";
         internal const string PATTERN_STRING = "String";
+        internal const string PATTERN_TYPE = "PCCType";
         public static Settings Settings { get; set; }
 
         static readonly List<string> Templates = new List<string>
@@ -38,7 +39,8 @@ namespace PostfixCodeCompletion.Helpers
             PATTERN_HASH,
             PATTERN_BOOL,
             PATTERN_NUMBER,
-            PATTERN_STRING
+            PATTERN_STRING,
+            PATTERN_TYPE
         };
         
         internal static bool GetHasTemplates()
@@ -82,7 +84,7 @@ namespace PostfixCodeCompletion.Helpers
                 foreach (var file in Directory.GetFiles(path, "*.fds"))
                 {
                     var content = GetFileContent(file);
-                    var marker = "#pcc:" + type;
+                    var marker = $"#pcc:{type}";
                     var startIndex = content.IndexOf(marker, StringComparison.Ordinal);
                     if (startIndex != -1)
                     {

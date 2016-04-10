@@ -180,7 +180,7 @@ namespace PostfixCodeCompletion
             if (allItems != null)
             {
                 var labels = new HashSet<string>();
-                foreach (var item in allItems)
+                foreach (var item in allItems.OfType<PostfixCompletionItem>())
                 {
                     labels.Add(item.Label);
                 }
@@ -193,6 +193,14 @@ namespace PostfixCodeCompletion
             }
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
             var word = sci.GetWordLeft(sci.CurrentPos - 1, false);
+            if (!string.IsNullOrEmpty(word))
+            {
+                items = items.FindAll(it =>
+                {
+                    var score = CompletionList.SmartMatch(it.Label, word, word.Length);
+                    return score > 0 && score < 6;
+                });
+            }
             CompletionList.Show(items, false, word);
             var list = Reflector.CompletionList.completionList;
             completionListItemCount = list.Items.Count;
@@ -267,6 +275,7 @@ namespace PostfixCodeCompletion
             if (IsBoolean(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_BOOL, expr));
             if (IsNumber(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NUMBER, expr));
             if (IsString(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_STRING, expr));
+            if (IsType(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_TYPE, expr));
             return result.Distinct().ToList();
         }
 
@@ -341,6 +350,8 @@ namespace PostfixCodeCompletion
         }
 
         static bool IsString(MemberModel target) => target.Type == ASContext.Context.Features.stringKey;
+
+        static bool IsType(MemberModel target) => target.Flags == FlagType.Class;
 
         static IEnumerable<ICompletionListItem> GetCompletionItems(string pattern, MemberModel target, ASResult expr)
         {
