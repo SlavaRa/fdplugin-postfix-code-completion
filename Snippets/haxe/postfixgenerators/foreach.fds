@@ -1,3 +1,3 @@
-for (it in $(Collection|Hash)) $(CSLB){
+for (it in $(PCCCollection|Hash)) $(CSLB){
     $(EntryPoint)
 }

@@ -235,7 +235,7 @@ namespace PostfixCodeCompletion
             var line = sci.GetLine(currentLine).Trim();
             line = line.Remove(position);
             line = line.Insert(position, ";");
-            return Reflector.ASGenerator.GetStatementReturnType(sci, line, positionFromLine);
+            return Reflector.ASGenerator.GetStatementReturnType(sci, line, positionFromLine).Resolve;
         }
 
         static MemberModel GetPostfixCompletionTarget(ASResult expr)

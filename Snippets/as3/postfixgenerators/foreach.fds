@@ -1,3 +1,3 @@
-for each (var item:$(CollectionItemType) in $(Collection|Hash)) $(CSLB){
+for each (var item:$(CollectionItemType) in $(PCCCollection|PCCHash)) $(CSLB){
     $(EntryPoint)
 }
