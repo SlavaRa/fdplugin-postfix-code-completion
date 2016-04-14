@@ -1,4 +1,4 @@
-PostfixCodeCompletion plugin for FlashDevelop
+PostfixCodeCompletion plugin for [FlashDevelop](http://www.flashdevelop.org)
 ========================
 [![Build status](https://ci.appveyor.com/api/projects/status/acnsq3sk2xboe3as?svg=true)](https://ci.appveyor.com/project/slavara/fd-postfix-code-completion-plugin)
 
@@ -6,8 +6,8 @@ The basic idea is to prevent caret jumps backwards while typing code.
 Kind of surround templates on steroids baked with code completion.
 
 ## Minimum Requirements
-* FlashDevelop 5.0.1 or never.
-* Haxe 3.2.0 or never for haxe projects.
+* [Last release FlashDevelop](http://www.flashdevelop.org/community/viewforum.php?f=11).
+* [Haxe 3.2.1](http://haxe.org/download/) or never for haxe projects.
 
 ### Installation
 
