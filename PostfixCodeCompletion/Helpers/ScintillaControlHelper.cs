@@ -39,21 +39,20 @@ namespace PostfixCodeCompletion.Helpers
                     if (sQuotes == 0) sQuotes++;
                     else sQuotes--;
                 }
-                else if (arrCount == 0 && parCount == 0 && genCount == 0 && braCount == 0
-                         && dQuotes == 0 && sQuotes == 0
-                         && !characters.Contains(c) && c != '.')
+                else if (arrCount == 0 && parCount == 0 && genCount == 0 && braCount == 0 && dQuotes == 0 && sQuotes == 0 && !characters.Contains(c) && c != '.')
                 {
                     result = i;
                     break;
                 }
             }
             if (expr.Member == null && sci.GetWordLeft(result - 1, true) == "new")
-                return GetWordLeftStartPosition(sci, result - 1, true);
+                result = sci.WordStartPosition(result - 1, false);
             return result;
         }
 
-        internal static int GetWordLeftStartPosition(ScintillaControl sci, int position, bool skipWhiteSpace)
+        internal static int GetWordLeftStartPosition(ScintillaControl sci, int position)
         {
+            var skipWhiteSpace = true;
             var characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
             while (position >= 0)
             {
