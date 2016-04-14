@@ -39,7 +39,7 @@ Available templates for **AS3**:
 * `.sel` – selects expression in editor
 
 Available templates for **Haxe**:
-* `.code` - for String expression to be `expr.code`
+* `.code` - for String adds `code` to completion list
 * `.if` – checks boolean expression to be true  `if (expr)`
 * `.else` – checks boolean expression to be false  `if (!expr)`
 * `.null` – checks nullable expression to be null `if (expr == null)`
