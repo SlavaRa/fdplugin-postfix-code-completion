@@ -85,7 +85,8 @@ for (var $(ItmUniqueVar):int = $(flash.display.DisplayObjectContainer).numChildr
 	$(EntryPoint)
 }
 ```
-развернется для массива в код:
+развернется в код
+для массива:
 ```
 for (var i:int = 0; i < expr.length; i++) {
 	|
