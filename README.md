@@ -70,7 +70,7 @@ Available templates for Haxe:
 * http://www.flashdevelop.org/wikidocs/index.php?title=Arguments
  
 Маркеры можно использовать вместе используя разделитель `|`, например сниппет `if($(PCCBoolean|PCCNullable)$(EntryPoint))` будет работать как для логических так и для любых единиц кода, которые могут принимать значени null.
-Кроме этого сниппеты поддерживают условия, для которых использутся разделитель #pcc:Тип, например сниппет:
+Кроме этого сниппеты поддерживают условия, для которых использутся разделитель `#pcc:PCCМаркер` или `#pcc:T`, например сниппет:
 ```
 #pcc:PCCCollection
 for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(PCCCollection).length; $(ItmUniqueVar)++) $(CSLB){
