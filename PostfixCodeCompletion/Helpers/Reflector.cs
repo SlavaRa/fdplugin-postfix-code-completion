@@ -66,14 +66,25 @@ namespace PostfixCodeCompletion.Helpers
             return (string)methodInfo.Invoke(null, new object[] { type });
         }
 
-        internal ASResult GetStatementReturnType(ScintillaControl sci, string line, int positionFromLine)
+        internal StatementReturnType GetStatementReturnType(ScintillaControl sci, string line, int positionFromLine)
         {
             var methodInfo = typeof(ASGenerator).GetMethod("GetStatementReturnType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
             var returnType = methodInfo.Invoke(null, new object[] { sci, ASContext.Context.CurrentClass, line, positionFromLine });
-            var expr = returnType != null
-                ? (ASResult) returnType.GetType().GetField("resolve").GetValue(returnType)
-                : null;
-            return expr;
+            if (returnType == null) return null;
+            var result = new StatementReturnType
+            {
+                Resolve = (ASResult) returnType.GetType().GetField("resolve").GetValue(returnType),
+                Position = (int) returnType.GetType().GetField("position").GetValue(returnType),
+                Word = (string) returnType.GetType().GetField("word").GetValue(returnType)
+            };
+            return result;
         }
+    }
+
+    internal class StatementReturnType
+    {
+        public ASResult Resolve;
+        public int Position;
+        public string Word;
     }
 }

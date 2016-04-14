@@ -1,1 +1,1 @@
-return $(EntryPoint)$(Member);
+return $(EntryPoint)$(PCCMember);
