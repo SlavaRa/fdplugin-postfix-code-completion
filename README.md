@@ -97,7 +97,7 @@ for (var i:int = 0; i < expr; i++) {
 	|
 }
 ```
-для `flash.display.Sprite`:
+для `flash.display.DisplayObjectContainer` и наследников:
 ```
 for (var i:int = expr.numChildren; i < expr; i++) {
 	|
