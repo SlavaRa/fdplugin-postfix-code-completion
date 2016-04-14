@@ -42,10 +42,7 @@ namespace PostfixCodeCompletion.Helpers
             PATTERN_TYPE
         };
         
-        internal static bool GetHasTemplates()
-        {
-            return GetHasTemplates(PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
-        }
+        internal static bool GetHasTemplates() => GetHasTemplates(PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
 
         internal static bool GetHasTemplates(string language)
         {
@@ -59,17 +56,9 @@ namespace PostfixCodeCompletion.Helpers
             return Directory.Exists(snippetPath) && Directory.GetFiles(snippetPath, "*.fds").Length > 0;
         }
 
-        static string GetTemplatesDir(string snippetPath)
-        {
-            return GetTemplatesDir(snippetPath, PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
-        }
+        static string GetTemplatesDir(string snippetPath) => GetTemplatesDir(snippetPath, PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
 
-        static string GetTemplatesDir(string snippetPath, string language)
-        {
-            snippetPath = Path.Combine(snippetPath, language);
-            snippetPath = Path.Combine(snippetPath, POSTFIX_GENERATORS);
-            return snippetPath;
-        }
+        static string GetTemplatesDir(string snippetPath, string language) => Path.Combine(Path.Combine(snippetPath, language), POSTFIX_GENERATORS);
 
         internal static Dictionary<string, string> GetTemplates(string type)
         {
@@ -113,20 +102,18 @@ namespace PostfixCodeCompletion.Helpers
         internal static KeyValuePair<string, string> GetVarNameToQualifiedName(ASResult expr)
         {
             string type = null;
-            var varname = string.Empty;
-            var sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            var lineNum = sci.CurrentLine;
-            var line = sci.GetLine(lineNum);
-            var returnType = Reflector.ASGenerator.GetStatementReturnType(sci, line, sci.PositionFromLine(lineNum));
-            var word = returnType?.Word;
             var member = expr.Member;
-            if (member != null && member.Type != null) type = member.Type;
+            if (member?.Type != null) type = member.Type;
             else
             {
                 var cType = expr.Type;
-                if (cType != null && cType.Name != null) type = cType.QualifiedName;
+                if (cType?.Name != null) type = cType.QualifiedName;
             }
-            if (member != null && member.Name != null) varname = Reflector.ASGenerator.GuessVarName(member.Name, type);
+            var sci = PluginBase.MainForm.CurrentDocument.SciControl;
+            var lineNum = sci.CurrentLine;
+            var word = Reflector.ASGenerator.GetStatementReturnType(sci, sci.GetLine(lineNum), sci.PositionFromLine(lineNum))?.Word;
+            var varname = string.Empty;
+            if (member?.Name != null) varname = Reflector.ASGenerator.GuessVarName(member.Name, type);
             if (!string.IsNullOrEmpty(word) && char.IsDigit(word[0])) word = null;
             if (!string.IsNullOrEmpty(word) && (string.IsNullOrEmpty(type) || Regex.IsMatch(type, "(<[^]]+>)"))) word = null;
             if (!string.IsNullOrEmpty(type) && type == ASContext.Context.Features.voidKey) type = null;
@@ -153,7 +140,7 @@ namespace PostfixCodeCompletion.Helpers
             if (type.Contains("@")) type = $"{type.Replace("@", ".<")}>";
             type = Regex.Match(type, "<([^]]+)>").Groups[1].Value;
             type = Reflector.ASGenerator.GetShortType(type);
-            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
+            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower())
             {
                 case "as2":
                 case "as3":
@@ -166,7 +153,7 @@ namespace PostfixCodeCompletion.Helpers
 
         internal static string ProcessHashTemplate(string template, ASResult expr)
         {
-            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
+            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower())
             {
                 case "as2":
                 case "as3":
