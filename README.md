@@ -16,7 +16,7 @@ Download the latest release. Open the .fdz file with FlashDevelop.
 https://github.com/SlavaRa/fdplugin-postfix-code-completion/releases
 
 ## Features
-Available templates for AS3:
+Available templates for **AS3**:
 * `.if` – checks boolean expression to be true `if (expr)`
 * `.else` – checks boolean expression to be false `if (!expr)`
 * `.null` – checks nullable expression to be null `if (expr == null)`
@@ -38,7 +38,7 @@ Available templates for AS3:
 * `.dowhile` – uses expression as loop condition  `do{...} while(expr);`
 * `.sel` – selects expression in editor
 
-Available templates for Haxe:
+Available templates for **Haxe**:
 * `.code` - for String expression to be `expr.code`
 * `.if` – checks boolean expression to be true  `if (expr)`
 * `.else` – checks boolean expression to be false  `if (!expr)`
