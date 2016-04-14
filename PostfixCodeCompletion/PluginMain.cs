@@ -173,21 +173,19 @@ namespace PostfixCodeCompletion
 
         static void UpdateCompletionList(MemberModel target, ASResult expr)
         {
-            if (target == null) return;
-            if (!TemplateUtils.GetHasTemplates()) return;
+            if (target == null || !TemplateUtils.GetHasTemplates()) return;
             var items = GetPostfixCompletionItems(target, expr);
             var allItems = Reflector.CompletionList.allItems;
             if (allItems != null)
             {
                 var labels = new HashSet<string>();
-                foreach (var item in allItems.OfType<PostfixCompletionItem>())
+                foreach (var item in allItems)
                 {
-                    labels.Add(item.Label);
+                    if (item is PostfixCompletionItem) labels.Add(item.Label);
                 }
                 foreach (var item in items)
                 {
-                    var label = item.Label;
-                    if (!labels.Contains(label)) allItems.Add(item);
+                    if (!labels.Contains(item.Label)) allItems.Add(item);
                 }
                 items = allItems;
             }
@@ -243,8 +241,7 @@ namespace PostfixCodeCompletion
             if (expr == null || expr.IsNull()) return null;
             var member = expr.Member;
             var voidKey = ASContext.Context.Features.voidKey;
-            if (member != null && !string.IsNullOrEmpty(member.Type) && member.Type != voidKey)
-                return member;
+            if (!string.IsNullOrEmpty(member?.Type) && member.Type != voidKey) return member;
             var type = expr.Type;
             if (type != null && !type.IsVoid() && !string.IsNullOrEmpty(type.Type) && type.Type != voidKey)
                 return type;
@@ -262,10 +259,7 @@ namespace PostfixCodeCompletion
             if (IsHash(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_HASH, expr));
             if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower() == "haxe")
             {
-                var type = expr.Type != null && !string.IsNullOrEmpty(expr.Type.Type) &&
-                                  expr.Type.Type != ASContext.Context.Features.voidKey
-                    ? expr.Type
-                    : null;
+                var type = !string.IsNullOrEmpty(expr.Type?.Type) && expr.Type.Type != ASContext.Context.Features.voidKey ? expr.Type : null;
                 if (type != null)
                 {
                     if (IsCollection(type)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
@@ -308,13 +302,18 @@ namespace PostfixCodeCompletion
                     var type = target.Type;
                     return type == ASContext.Context.Features.objectKey || type == "Dictionary";
                 case "haxe":
-                    if (IsIteratorOrIterable(target)) return true;
+                    Func<MemberModel, bool> isIterator = member =>
+                    {
+                        var cleanType = Reflector.ASGenerator.CleanType(member.Type);
+                        return cleanType == "Iterator" || cleanType == "Iterable";
+                    };
+                    if (isIterator(target)) return true;
                     if (target is ClassModel)
                     {
                         var classModel = target as ClassModel;
                         while (classModel != null && !classModel.IsVoid())
                         {
-                            if (classModel.Members.Items.Any(IsIteratorOrIterable))
+                            if (classModel.Members.Items.Any(isIterator))
                                 return true;
                             classModel.ResolveExtends();
                             classModel = classModel.Extends;
@@ -323,12 +322,6 @@ namespace PostfixCodeCompletion
                     return false;
                 default: return false;
             }
-        }
-
-        static bool IsIteratorOrIterable(MemberModel member)
-        {
-            var cleanType = Reflector.ASGenerator.CleanType(member.Type);
-            return cleanType == "Iterator" || cleanType == "Iterable";
         }
 
         static bool IsBoolean(MemberModel target) => target.Type == ASContext.Context.Features.booleanKey;
@@ -368,10 +361,7 @@ namespace PostfixCodeCompletion
             return GetCompletionItems(templates ?? new Dictionary<string, string>(), pattern, expr);
         }
 
-        static IEnumerable<ICompletionListItem> GetCompletionItems(string pattern, ASResult expr)
-        {
-            return GetCompletionItems(TemplateUtils.GetTemplates(pattern), pattern, expr);
-        }
+        static IEnumerable<ICompletionListItem> GetCompletionItems(string pattern, ASResult expr) => GetCompletionItems(TemplateUtils.GetTemplates(pattern), pattern, expr);
 
         static IEnumerable<ICompletionListItem> GetCompletionItems(Dictionary<string, string> templates, string pattern, ASResult expr)
         {
@@ -400,10 +390,7 @@ namespace PostfixCodeCompletion
                         template = TemplateUtils.ProcessHashTemplate(template, expr);
                         break;
                 }
-                var item = new PostfixCompletionItem(fileName, template, expr)
-                {
-                    Pattern = pattern
-                };
+                var item = new PostfixCompletionItem(fileName, template, expr) {Pattern = pattern};
                 if (isHaxe && fileName == "code" && itemIcon != null)
                 {
                     item.Icon = itemIcon;
