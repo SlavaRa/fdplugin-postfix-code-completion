@@ -55,3 +55,51 @@ Available templates for Haxe:
 * `.while` – uses expression as loop condition `while (expr)`
 * `.dowhile` – uses expression as loop condition `do{...} while(expr);`
 * `.sel` – selects expression in editor
+
+
+## Как добавить сниппеты для постфиксного автокомплита самому?
+Сниппеты для постфиксного автокомплита представляют из себя улучшенный вид стандартных сниппетов и по умолчанию распологаются в `FlashDevelop\Snippets\Language\postfixgenerators`, также в настройках плагина можно подключить пользовательские директории.
+
+### Синтаксис
+* `$(PCCMember)` - любая единица кода
+* `$(PCCBoolean)` - логическое
+* `$(PCCNullable)` - единица кода, которая может принимать значение null
+* `$(PCCCollection)` - Коллекция элементов, расположенных в памяти непосредственно друг за другом
+* `$(PCCHash)` - Ассоциативная коллекция
+* `$(PCCNumber)` - Числовое
+* http://www.flashdevelop.org/wikidocs/index.php?title=Arguments
+ 
+Маркеры можно использовать вместе используя разделитель `|`, например сниппет `if($(PCCBoolean|PCCNullable)$(EntryPoint))` будет работать как для логических так и для любых единиц кода, которые могут принимать значени null.
+Кроме этого сниппеты поддерживают условия, для которых использутся разделитель #pcc:Тип, например сниппет:
+```
+#pcc:PCCCollection
+for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(PCCCollection).length; $(ItmUniqueVar)++) $(CSLB){
+	$(EntryPoint)
+}
+#pcc:PCCNumber
+for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(PCCNumber); $(ItmUniqueVar)++) $(CSLB){
+	$(EntryPoint)
+}
+#pcc:flash.display.DisplayObjectContainer
+for (var $(ItmUniqueVar):int = $(flash.display.DisplayObjectContainer).numChildren; $(ItmUniqueVar) >= 0; $(ItmUniqueVar)--) $(CSLB){
+	$(EntryPoint)
+}
+```
+развернется для массива в код:
+```
+for (var i:int = 0; i < expr.length; i++) {
+	|
+}
+```
+для числовых:
+```
+for (var i:int = 0; i < expr; i++) {
+	|
+}
+```
+для `flash.display.Sprite`:
+```
+for (var i:int = expr.numChildren; i < expr; i++) {
+	|
+}
+```
