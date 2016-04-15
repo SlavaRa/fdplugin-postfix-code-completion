@@ -46,7 +46,7 @@ Available templates for **Haxe**:
 * `.notnull` – checks expression to be non-null `if (expr != null)`
 * `.not` – negates value of inner boolean expression `!expr`
 * `.foreach` – iterates over collection `for(it in expr`)
-* `.for` – for Array|Vector|Iterator|Iterable surrounds with loop `for (i in 0...expr.Length)`
+* `.for` – for Array|Vector|Iterator|Iterable surrounds with loop `for (i in 0...expr.length)`
 * `.for` – for Numeric surrounds with loop `for (i in 0...expr)`
 * `.var` – initialize new variable with expression `var x = expr;`
 * `.new` – produces instantiation expression for type `new T()`
