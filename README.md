@@ -17,6 +17,7 @@ https://github.com/SlavaRa/fdplugin-postfix-code-completion/releases
 
 ## Features
 Available templates for **AS3**:
+* `.constructor` – surrounds with expression `Object(expr)['constructor']`
 * `.if` – checks boolean expression to be true `if (expr)`
 * `.else` – checks boolean expression to be false `if (!expr)`
 * `.null` – checks nullable expression to be null `if (expr == null)`
