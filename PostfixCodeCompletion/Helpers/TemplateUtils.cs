@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -13,41 +12,40 @@ using PluginCore.Helpers;
 
 namespace PostfixCodeCompletion.Helpers
 {
-    static class TemplateUtils
+    internal static class TemplateUtils
     {
-        public const string PATTERN_BLOCK = @"\$\([^\)]*{0}.*?\)";
-        public const string PATTERN_T_BLOCK = @"[^\$]*?\$\({0}\)";
-        internal const string POSTFIX_GENERATORS = "PostfixGenerators";
-        internal const string PATTERN_MEMBER = "PCCMember";
-        internal const string PATTERN_NULLABLE = "PCCNullable";
-        internal const string PATTERN_COLLECTION = "PCCCollection";
-        internal const string PATTERN_COLLECTION_KEY_TYPE = "$(CollectionKeyType)";
-        internal const string PATTERN_COLLECTION_ITEM_TYPE = "$(CollectionItemType)";
-        internal const string PATTERN_HASH = "PCCHash";
-        internal const string PATTERN_BOOL = "PCCBoolean";
-        internal const string PATTERN_NUMBER = "PCCNumber";
-        internal const string PATTERN_STRING = "PCCString";
-        internal const string PATTERN_TYPE = "PCCType";
+        public const string PatternBlock = @"\$\([^\)]*{0}.*?\)";
+        public const string PatternTBlock = @"[^\$]*?\$\({0}\)";
+        internal const string PostfixGenerators = "PostfixGenerators";
+        internal const string PatternMember = "PCCMember";
+        internal const string PatternNullable = "PCCNullable";
+        internal const string PatternCollection = "PCCCollection";
+        internal const string PatternCollectionKeyType = "$(CollectionKeyType)";
+        internal const string PatternCollectionItemType = "$(CollectionItemType)";
+        internal const string PatternHash = "PCCHash";
+        internal const string PatternBool = "PCCBoolean";
+        internal const string PatternNumber = "PCCNumber";
+        internal const string PatternString = "PCCString";
+        internal const string PatternType = "PCCType";
         public static Settings Settings { get; set; }
 
         static readonly List<string> Templates = new List<string>
         {
-            PATTERN_MEMBER,
-            PATTERN_NULLABLE,
-            PATTERN_COLLECTION,
-            PATTERN_HASH,
-            PATTERN_BOOL,
-            PATTERN_NUMBER,
-            PATTERN_STRING,
-            PATTERN_TYPE
+            PatternMember,
+            PatternNullable,
+            PatternCollection,
+            PatternHash,
+            PatternBool,
+            PatternNumber,
+            PatternString,
+            PatternType
         };
         
         internal static bool GetHasTemplates() => GetHasTemplates(PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
 
         internal static bool GetHasTemplates(string language)
         {
-            return GetHasTemplates(PathHelper.SnippetDir, language)
-                || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path, language));
+            return GetHasTemplates(PathHelper.SnippetDir, language) || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path, language));
         }
 
         static bool GetHasTemplates(string snippetPath, string language)
@@ -58,11 +56,11 @@ namespace PostfixCodeCompletion.Helpers
 
         static string GetTemplatesDir(string snippetPath) => GetTemplatesDir(snippetPath, PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
 
-        static string GetTemplatesDir(string snippetPath, string language) => Path.Combine(Path.Combine(snippetPath, language), POSTFIX_GENERATORS);
+        static string GetTemplatesDir(string snippetPath, string language) => Path.Combine(Path.Combine(snippetPath, language), PostfixGenerators);
 
         internal static Dictionary<string, string> GetTemplates(string type)
         {
-            var pattern = Templates.Contains(type) ? string.Format(PATTERN_BLOCK, type) : string.Format(PATTERN_T_BLOCK, type);
+            var pattern = Templates.Contains(type) ? string.Format(PatternBlock, type) : string.Format(PatternTBlock, type);
             var result = new Dictionary<string, string>();
             var paths = Settings.CustomSnippetDirectories.Select(it => GetTemplatesDir(it.Path)).ToList();
             paths.Add(GetTemplatesDir(PathHelper.SnippetDir));
@@ -73,13 +71,13 @@ namespace PostfixCodeCompletion.Helpers
                 {
                     var content = GetFileContent(file);
                     var marker = $"#pcc:{type}";
-                    var startIndex = content.IndexOf(marker, StringComparison.Ordinal);
+                    var startIndex = content.IndexOfOrdinal(marker);
                     if (startIndex != -1)
                     {
                         startIndex += marker.Length;
                         content = content.Remove(0, startIndex);
                     }
-                    startIndex = content.IndexOf("#pcc:", StringComparison.Ordinal);
+                    startIndex = content.IndexOfOrdinal("#pcc:");
                     if (startIndex != -1) content = content.Remove(startIndex);
                     if (!Regex.IsMatch(content, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline)) continue;
                     result.Add(file, content.Replace("\r\n", "\n"));
@@ -125,7 +123,7 @@ namespace PostfixCodeCompletion.Helpers
         internal static string ProcessMemberTemplate(string template, ASResult expr)
         {
             var varNameToQualifiedName = GetVarNameToQualifiedName(expr);
-            var name = varNameToQualifiedName.Key.ToLower();
+            var name = varNameToQualifiedName.Key;
             var type = varNameToQualifiedName.Value;
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
             if (ASContext.Context is Context && Settings != null && Settings.DisableTypeDeclaration) type = null;
@@ -145,10 +143,10 @@ namespace PostfixCodeCompletion.Helpers
                 case "as2":
                 case "as3":
                     if (string.IsNullOrEmpty(type)) type = ASContext.Context.Features.dynamicKey;
-                    template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, "int");
+                    template = template.Replace(PatternCollectionKeyType, "int");
                     break;
             }
-            return template.Replace(PATTERN_COLLECTION_ITEM_TYPE, type);
+            return template.Replace(PatternCollectionItemType, type);
         }
 
         internal static string ProcessHashTemplate(string template, ASResult expr)
@@ -163,8 +161,8 @@ namespace PostfixCodeCompletion.Helpers
                     var objectKey = features.objectKey;
                     if (type == objectKey || type == "Dictionary")
                     {
-                        template = template.Replace(PATTERN_COLLECTION_KEY_TYPE, type == objectKey ? features.stringKey : objectKey);
-                        template = template.Replace(PATTERN_COLLECTION_ITEM_TYPE, features.dynamicKey);
+                        template = template.Replace(PatternCollectionKeyType, type == objectKey ? features.stringKey : objectKey);
+                        template = template.Replace(PatternCollectionItemType, features.dynamicKey);
                     }
                     break;
             }
@@ -180,7 +178,7 @@ namespace PostfixCodeCompletion.Helpers
             var line = sci.GetLine(lineNum);
             var snippet = line.Substring(exprStartPosition - sci.PositionFromLine(lineNum), position - exprStartPosition);
             var result = template.Replace(SnippetHelper.BOUNDARY, string.Empty);
-            result = Regex.Replace(result, string.Format(PATTERN_BLOCK, pccpattern), snippet, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            result = Regex.Replace(result, string.Format(PatternBlock, pccpattern), snippet, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             result = ProcessMemberTemplate(result, expr);
             result = ArgsProcessor.ProcessCodeStyleLineBreaks(result);
             result = result.Replace(SnippetHelper.ENTRYPOINT, "|");
@@ -196,7 +194,7 @@ namespace PostfixCodeCompletion.Helpers
             sci.ReplaceSel(string.Empty);
             position = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
             sci.SetSel(position, sci.CurrentPos);
-            var snippet = Regex.Replace(template, string.Format(PATTERN_BLOCK, pccpattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            var snippet = Regex.Replace(template, string.Format(PatternBlock, pccpattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             snippet = ProcessMemberTemplate(snippet, expr);
             snippet = ArgsProcessor.ProcessCodeStyleLineBreaks(snippet);
             sci.ReplaceSel(string.Empty);

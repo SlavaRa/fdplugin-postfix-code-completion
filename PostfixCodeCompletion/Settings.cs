@@ -12,10 +12,9 @@ namespace PostfixCodeCompletion
     {
         Folder[] customSnippetDirectories;
 
-        [DefaultValue("")]
-        [DisplayName("Custom Snippet Directories")]
         [LocalizedCategory("FlashDevelop.Category.Paths")]
-        [Editor(typeof (ArrayEditor), typeof (UITypeEditor))]
+        [DisplayName("Custom Snippet Directories"), DefaultValue("")]
+        [Editor(typeof(ArrayEditor), typeof(UITypeEditor))]
         public Folder[] CustomSnippetDirectories
         {
             get { return customSnippetDirectories ?? (customSnippetDirectories = new Folder[] {}); }
@@ -24,13 +23,29 @@ namespace PostfixCodeCompletion
 
         bool disableTypeDeclaration = true;
 
-        [Category("Haxe")]
-        [DisplayName("Disable type declaration for variables")]
-        [DefaultValue(true)]
+        [Category("Haxe"), DisplayName("Disable type declaration for variables"), DefaultValue(true)]
         public bool DisableTypeDeclaration
         {
             get { return disableTypeDeclaration; }
             set { disableTypeDeclaration = value; }
         }
+
+        [Category("Advanced"), DisplayName("Features of languages")]
+        [Editor(typeof(ArrayEditor), typeof(UITypeEditor))]
+        public LanguageFeatures[] LanguageFeatures { get; set; } = {
+            new LanguageFeatures {Language = "as3", Numeric = new[] {"int", "uint"}},
+            new LanguageFeatures {Language = "haxe", Numeric = new[] {"Int", "UInt"}}
+        };
+    }
+
+    [Serializable]
+    [DefaultProperty(nameof(Language))]
+    internal class LanguageFeatures
+    {
+        [DisplayName("Language name")]
+        public string Language { get; set; } = string.Empty;
+
+        [DisplayName("Numeric types")]
+        public string[] Numeric { get; set; } = {};
     }
 }
