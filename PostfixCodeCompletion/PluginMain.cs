@@ -328,7 +328,7 @@ namespace PostfixCodeCompletion
 
         static bool IsNumber(MemberModel target)
         {
-            var type = target.Type;
+            var type = target is ClassModel ? ((ClassModel)target).QualifiedName : target.Type;
             if (type == ASContext.Context.Features.numberKey) return true;
             switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
             {
