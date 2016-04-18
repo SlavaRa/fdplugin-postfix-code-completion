@@ -32,17 +32,17 @@ namespace PostfixCodeCompletion
 
         #region Required Properties
 
-        public int Api { get { return 1; }}
+        public int Api => 1;
 
-        public string Name { get { return "PostfixCodeCompletion"; }}
+        public string Name => "PostfixCodeCompletion";
 
-        public string Guid { get { return "21d9ab3e-93e4-4460-9298-c62f87eed7ba"; }}
+        public string Guid => "21d9ab3e-93e4-4460-9298-c62f87eed7ba";
 
-        public string Help { get { return ""; }}
+        public string Help => string.Empty;
 
-        public string Author { get { return "SlavaRa"; }}
+        public string Author => "SlavaRa";
 
-        public string Description { get { return "Postfix code completion helps reduce backward caret jumps as you write code"; }}
+        public string Description => "Postfix code completion helps reduce backward caret jumps as you write code";
 
         public object Settings { get; private set; }
 
@@ -549,7 +549,7 @@ namespace PostfixCodeCompletion
         #endregion
     }
 
-    class PostfixCompletionItem : ICompletionListItem
+    internal class PostfixCompletionItem : ICompletionListItem
     {
         readonly string template;
         readonly ASResult expr;
