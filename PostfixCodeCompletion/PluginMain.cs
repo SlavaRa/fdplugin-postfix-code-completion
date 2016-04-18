@@ -149,13 +149,13 @@ namespace PostfixCodeCompletion
         /// </summary>
         void SaveSettings() => ObjectSerializer.Serialize(settingFilename, Settings);
 
-        static void UpdateCompletionList()
+        void UpdateCompletionList()
         {
             var expr = GetPostfixCompletionExpr();
             UpdateCompletionList(expr);
         }
 
-        static void UpdateCompletionList(ASResult expr)
+        void UpdateCompletionList(ASResult expr)
         {
             if (expr == null || expr.IsNull()) return;
             var target = GetPostfixCompletionTarget(expr);
@@ -171,7 +171,7 @@ namespace PostfixCodeCompletion
             hc.GetPositionType(OnFunctionTypeResult);
         }
 
-        static void UpdateCompletionList(MemberModel target, ASResult expr)
+        void UpdateCompletionList(MemberModel target, ASResult expr)
         {
             if (target == null || !TemplateUtils.GetHasTemplates()) return;
             var items = GetPostfixCompletionItems(target, expr);
@@ -248,7 +248,7 @@ namespace PostfixCodeCompletion
             return null;
         }
 
-        static List<ICompletionListItem> GetPostfixCompletionItems(MemberModel target, ASResult expr)
+        List<ICompletionListItem> GetPostfixCompletionItems(MemberModel target, ASResult expr)
         {
             var result = new List<ICompletionListItem>();
             if (expr.Member != null) result.AddRange(GetCompletionItems(expr.Member.Type, target, expr));
@@ -273,7 +273,7 @@ namespace PostfixCodeCompletion
             return result.Distinct().ToList();
         }
 
-        static bool IsNullable(MemberModel target) => !IsNumber(target) && target.Type != ASContext.Context.Features.booleanKey;
+        bool IsNullable(MemberModel target) => !IsNumber(target) && target.Type != ASContext.Context.Features.booleanKey;
 
         static bool IsCollection(MemberModel target)
         {
@@ -326,20 +326,13 @@ namespace PostfixCodeCompletion
 
         static bool IsBoolean(MemberModel target) => target.Type == ASContext.Context.Features.booleanKey;
 
-        static bool IsNumber(MemberModel target)
+        bool IsNumber(MemberModel target)
         {
             var type = target is ClassModel ? ((ClassModel)target).QualifiedName : target.Type;
             if (type == ASContext.Context.Features.numberKey) return true;
-            switch (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage)
-            {
-                case "as2":
-                case "as3":
-                    return type == "int" || type == "uint";
-                case "haxe":
-                    return type == "Int" || type == "UInt";
-                default:
-                    return false;
-            }
+            var language = PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower();
+            var features = ((Settings)Settings).LanguageFeatures.First(it => it.Language == language);
+            return features != null && features.Numeric.Contains(type);
         }
 
         static bool IsString(MemberModel target) => target.Type == ASContext.Context.Features.stringKey;
@@ -426,7 +419,7 @@ namespace PostfixCodeCompletion
 
         #region Event Handlers
 
-        static void OnCharAdded(ScintillaControl sender, int value)
+        void OnCharAdded(ScintillaControl sender, int value)
         {
             try
             {
@@ -451,14 +444,14 @@ namespace PostfixCodeCompletion
             }
         }
 
-        static void OnCompletionListVisibleChanged(object o, EventArgs args)
+        void OnCompletionListVisibleChanged(object o, EventArgs args)
         {
             var list = Reflector.CompletionList.CompletionList;
             if (list.Visible) UpdateCompletionList();
             else list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
         }
 
-        static void OnCompletionListSelectedValueChanged(object sender, EventArgs args)
+        void OnCompletionListSelectedValueChanged(object sender, EventArgs args)
         {
             var list = Reflector.CompletionList.CompletionList;
             list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
@@ -517,7 +510,7 @@ namespace PostfixCodeCompletion
             completionModeHandler = new CompilerCompletionHandler(CreateHaxeProcess(string.Empty));
         }
 
-        static void OnFunctionTypeResult(HaxeComplete hc, HaxeCompleteResult result, HaxeCompleteStatus status)
+        void OnFunctionTypeResult(HaxeComplete hc, HaxeCompleteResult result, HaxeCompleteStatus status)
         {
             switch (status)
             {
@@ -587,15 +580,9 @@ namespace PostfixCodeCompletion
         }
 
         string description;
-        public string Description
-        {
-            get
-            {
-                return description ?? (description = TemplateUtils.GetDescription(expr, template, Pattern));
-            }
-        }
+        public string Description => description ?? (description = TemplateUtils.GetDescription(expr, template, Pattern));
 
-        public new string ToString() { return Description; }
+        public new string ToString() => Description;
 
         /// <summary>
         /// Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>.
@@ -618,9 +605,6 @@ namespace PostfixCodeCompletion
         /// A hash code for the current <see cref="T:System.Object"/>.
         /// </returns>
         /// <filterpriority>2</filterpriority>
-        public override int GetHashCode()
-        {
-            return Label.GetHashCode() ^ expr.GetHashCode();
-        }
+        public override int GetHashCode() => Label.GetHashCode() ^ expr.GetHashCode();
     }
 }
