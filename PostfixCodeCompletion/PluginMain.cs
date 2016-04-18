@@ -253,23 +253,23 @@ namespace PostfixCodeCompletion
             var result = new List<ICompletionListItem>();
             if (expr.Member != null) result.AddRange(GetCompletionItems(expr.Member.Type, target, expr));
             else if (expr.Type != null) result.AddRange(GetCompletionItems(expr.Type.Type, target, expr));
-            result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_MEMBER, expr));
-            if (IsNullable(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NULLABLE, expr));
-            if (IsCollection(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
-            if (IsHash(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_HASH, expr));
+            result.AddRange(GetCompletionItems(TemplateUtils.PatternMember, expr));
+            if (IsNullable(target)) result.AddRange(GetCompletionItems(TemplateUtils.PatternNullable, expr));
+            if (IsCollection(target)) result.AddRange(GetCompletionItems(TemplateUtils.PatternCollection, expr));
+            if (IsHash(target)) result.AddRange(GetCompletionItems(TemplateUtils.PatternHash, expr));
             if (PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower() == "haxe")
             {
                 var type = !string.IsNullOrEmpty(expr.Type?.Type) && expr.Type.Type != ASContext.Context.Features.voidKey ? expr.Type : null;
                 if (type != null)
                 {
-                    if (IsCollection(type)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_COLLECTION, expr));
-                    if (IsHash(type)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_HASH, expr));
+                    if (IsCollection(type)) result.AddRange(GetCompletionItems(TemplateUtils.PatternCollection, expr));
+                    if (IsHash(type)) result.AddRange(GetCompletionItems(TemplateUtils.PatternHash, expr));
                 }
             }
-            if (IsBoolean(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_BOOL, expr));
-            if (IsNumber(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_NUMBER, expr));
-            if (IsString(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_STRING, expr));
-            if (IsType(target)) result.AddRange(GetCompletionItems(TemplateUtils.PATTERN_TYPE, expr));
+            if (IsBoolean(target)) result.AddRange(GetCompletionItems(TemplateUtils.PatternBool, expr));
+            if (IsNumber(target)) result.AddRange(GetCompletionItems(TemplateUtils.PatternNumber, expr));
+            if (IsString(target)) result.AddRange(GetCompletionItems(TemplateUtils.PatternString, expr));
+            if (IsType(target)) result.AddRange(GetCompletionItems(TemplateUtils.PatternType, expr));
             return result.Distinct().ToList();
         }
 
@@ -376,10 +376,10 @@ namespace PostfixCodeCompletion
                 var template = pathToTemplate.Value;
                 switch (pattern)
                 {
-                    case TemplateUtils.PATTERN_COLLECTION:
+                    case TemplateUtils.PatternCollection:
                         template = TemplateUtils.ProcessCollectionTemplate(template, expr);
                         break;
-                    case TemplateUtils.PATTERN_HASH:
+                    case TemplateUtils.PatternHash:
                         template = TemplateUtils.ProcessHashTemplate(template, expr);
                         break;
                 }
@@ -554,12 +554,12 @@ namespace PostfixCodeCompletion
             this.expr = expr;
         }
 
-        public string Label { get; set; }
+        public string Label { get; }
 
         string pattern;
         public virtual string Pattern
         {
-            get { return pattern ?? TemplateUtils.PATTERN_MEMBER; }
+            get { return pattern ?? TemplateUtils.PatternMember; }
             set { pattern = value; }
         }
 
