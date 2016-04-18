@@ -74,7 +74,7 @@ namespace PostfixCodeCompletion
         /// </summary>
         public void HandleEvent(object sender, NotifyEvent e, HandlingPriority priority)
         {
-            var completionList = Reflector.CompletionList.completionList;
+            var completionList = Reflector.CompletionList.CompletionList;
             switch (e.Type)
             {
                 case EventType.UIStarted:
@@ -175,7 +175,7 @@ namespace PostfixCodeCompletion
         {
             if (target == null || !TemplateUtils.GetHasTemplates()) return;
             var items = GetPostfixCompletionItems(target, expr);
-            var allItems = Reflector.CompletionList.allItems;
+            var allItems = Reflector.CompletionList.AllItems;
             if (allItems != null)
             {
                 var labels = new HashSet<string>();
@@ -200,7 +200,7 @@ namespace PostfixCodeCompletion
                 });
             }
             CompletionList.Show(items, false, word);
-            var list = Reflector.CompletionList.completionList;
+            var list = Reflector.CompletionList.CompletionList;
             completionListItemCount = list.Items.Count;
             list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
             list.SelectedValueChanged += OnCompletionListSelectedValueChanged;
@@ -435,15 +435,15 @@ namespace PostfixCodeCompletion
                 if (sci.PositionIsOnComment(sci.CurrentPos)) return;
                 if (ASComplete.OnChar(sci, value, false))
                 {
-                    if (Reflector.CompletionList.completionList.Visible) UpdateCompletionList();
+                    if (Reflector.CompletionList.CompletionList.Visible) UpdateCompletionList();
                     return;
                 }
                 if (!Reflector.ASComplete.HandleDotCompletion(sci, true) || CompletionList.Active) return;
                 var expr = GetPostfixCompletionExpr();
                 if (expr == null || expr.IsNull()) return;
-                Reflector.CompletionList.completionList.VisibleChanged -= OnCompletionListVisibleChanged;
+                Reflector.CompletionList.CompletionList.VisibleChanged -= OnCompletionListVisibleChanged;
                 UpdateCompletionList(expr);
-                Reflector.CompletionList.completionList.VisibleChanged += OnCompletionListVisibleChanged;
+                Reflector.CompletionList.CompletionList.VisibleChanged += OnCompletionListVisibleChanged;
             }
             catch (Exception e)
             {
@@ -453,14 +453,14 @@ namespace PostfixCodeCompletion
 
         static void OnCompletionListVisibleChanged(object o, EventArgs args)
         {
-            var list = Reflector.CompletionList.completionList;
+            var list = Reflector.CompletionList.CompletionList;
             if (list.Visible) UpdateCompletionList();
             else list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
         }
 
         static void OnCompletionListSelectedValueChanged(object sender, EventArgs args)
         {
-            var list = Reflector.CompletionList.completionList;
+            var list = Reflector.CompletionList.CompletionList;
             list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
             if (completionListItemCount != list.Items.Count) UpdateCompletionList();
         }
@@ -526,7 +526,7 @@ namespace PostfixCodeCompletion
                     if (hc.AutoHide) CompletionList.Hide();
                     break;
                 case HaxeCompleteStatus.Type:
-                    var list = Reflector.CompletionList.completionList;
+                    var list = Reflector.CompletionList.CompletionList;
                     list.VisibleChanged -= OnCompletionListVisibleChanged;
                     var expr = hc.Expr;
                     if (result.Type is ClassModel)
