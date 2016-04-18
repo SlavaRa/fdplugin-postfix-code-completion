@@ -123,7 +123,7 @@ namespace PostfixCodeCompletion.Helpers
         internal static string ProcessMemberTemplate(string template, ASResult expr)
         {
             var varNameToQualifiedName = GetVarNameToQualifiedName(expr);
-            var name = varNameToQualifiedName.Key;//.ToLower();
+            var name = varNameToQualifiedName.Key;
             var type = varNameToQualifiedName.Value;
             template = ASCompletion.Completion.TemplateUtils.ReplaceTemplateVariable(template, "Name", name);
             if (ASContext.Context is Context && Settings != null && Settings.DisableTypeDeclaration) type = null;
