@@ -34,7 +34,7 @@ namespace PostfixCodeCompletion
         [Editor(typeof(ArrayEditor), typeof(UITypeEditor))]
         public LanguageFeatures[] LanguageFeatures { get; set; } = {
             new LanguageFeatures {Language = "as3", Numeric = new[] {"int", "uint"}},
-            new LanguageFeatures {Language = "haxe", Numeric = new [] {"Int", "Uint"}}
+            new LanguageFeatures {Language = "haxe", Numeric = new[] {"Int", "UInt"}}
         };
     }
 
@@ -43,9 +43,9 @@ namespace PostfixCodeCompletion
     internal class LanguageFeatures
     {
         [DisplayName("Language name")]
-        public string Language { get; set; }
+        public string Language { get; set; } = string.Empty;
 
         [DisplayName("Numeric types")]
-        public string[] Numeric { get; set; }
+        public string[] Numeric { get; set; } = {};
     }
 }
