@@ -1,4 +1,4 @@
-PostfixCodeCompletion plugin for [FlashDevelop](http://www.flashdevelop.org)
+PostfixCodeCompletion plugin for [FlashDevelop](http://www.flashdevelop.org)/[HaxeDevelop](http://www.haxedevelop.org)
 ========================
 [![Build status](https://ci.appveyor.com/api/projects/status/acnsq3sk2xboe3as?svg=true)](https://ci.appveyor.com/project/slavara/fd-postfix-code-completion-plugin)
 
