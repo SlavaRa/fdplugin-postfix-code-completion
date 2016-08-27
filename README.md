@@ -38,6 +38,7 @@ Available templates for **AS3**:
 * `.while` – uses expression as loop condition `while (expr)`
 * `.dowhile` – uses expression as loop condition  `do{...} while(expr);`
 * `.sel` – selects expression in editor
+* `.trace` - surrounds expression with `trace(expr);`
 
 Available templates for **Haxe**:
 * `.code` – for String adds `code` to completion list
@@ -56,7 +57,7 @@ Available templates for **Haxe**:
 * `.while` – uses expression as loop condition `while (expr)`
 * `.dowhile` – uses expression as loop condition `do{...} while(expr);`
 * `.sel` – selects expression in editor
-
+* `.trace` - surrounds expression with `trace(expr);`
 
 ## Как добавить сниппеты для постфиксного автокомплита самому?
 Сниппеты для постфиксного автокомплита представляют из себя улучшенный вид стандартных сниппетов и распологаются в `FlashDevelop\Snippets\Language\postfixgenerators`, также в настройках плагина можно подключить пользовательские директории.
