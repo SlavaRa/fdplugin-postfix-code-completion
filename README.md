@@ -7,7 +7,7 @@ Kind of surround templates on steroids baked with code completion.
 
 ## Minimum Requirements
 * [Last release FlashDevelop](http://www.flashdevelop.org/community/viewforum.php?f=11).
-* [Haxe 3.2.1](http://haxe.org/download/) or never for haxe projects.
+* [Haxe 3.2.1](http://haxe.org/download/) or higher - for Haxe projects
 
 ### Installation
 
