@@ -1,0 +1,7 @@
+for ($(ItmUniqueVar) in 0...$(PCCCollection).length) $(CSLB){
+	$(EntryPoint)
+}
+#pcc:PCCNumber
+for ($(ItmUniqueVar) in 0...$(PCCNumber)) $(CSLB){
+	$(EntryPoint)
+}

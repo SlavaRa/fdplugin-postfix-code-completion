@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostfixCodeCompletion", "PostfixCodeCompletion\PostfixCodeCompletion.csproj", "{E511B03B-81FD-4C39-B587-211F2A1603A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostfixCodeCompletion.Tests", "PostfixCodeCompletionTests\PostfixCodeCompletion.Tests.csproj", "{09FFA086-AB00-483F-8DA6-C3BE5F20A1F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Release|x86.ActiveCfg = Release|x86
 		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Release|x86.Build.0 = Release|x86
+		{09FFA086-AB00-483F-8DA6-C3BE5F20A1F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09FFA086-AB00-483F-8DA6-C3BE5F20A1F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09FFA086-AB00-483F-8DA6-C3BE5F20A1F7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{09FFA086-AB00-483F-8DA6-C3BE5F20A1F7}.Debug|x86.Build.0 = Debug|Any CPU
+		{09FFA086-AB00-483F-8DA6-C3BE5F20A1F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09FFA086-AB00-483F-8DA6-C3BE5F20A1F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09FFA086-AB00-483F-8DA6-C3BE5F20A1F7}.Release|x86.ActiveCfg = Release|Any CPU
+		{09FFA086-AB00-483F-8DA6-C3BE5F20A1F7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

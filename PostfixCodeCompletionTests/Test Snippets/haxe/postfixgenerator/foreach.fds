@@ -1,0 +1,3 @@
+for (it in $(PCCCollection|Hash)) $(CSLB){
+	$(EntryPoint)
+}

@@ -69,24 +69,40 @@ namespace PostfixCodeCompletion.Helpers
             {
                 foreach (var file in Directory.GetFiles(path, "*.fds"))
                 {
-                    var content = GetFileContent(file);
-                    var marker = $"#pcc:{type}";
-                    var startIndex = content.IndexOfOrdinal(marker);
-                    if (startIndex != -1)
-                    {
-                        startIndex += marker.Length;
-                        content = content.Remove(0, startIndex);
-                    }
-                    startIndex = content.IndexOfOrdinal("#pcc:");
-                    if (startIndex != -1) content = content.Remove(startIndex);
-                    if (!Regex.IsMatch(content, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline)) continue;
-                    result.Add(file, content.Replace("\r\n", "\n"));
+                    var snippet = GetSnippet(file);
+                    snippet = GetTemplate(snippet, type);
+                    if (!Regex.IsMatch(snippet, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline)) continue;
+                    result.Add(file, snippet.Replace("\r\n", "\n"));
                 }
             }
             return result;
         }
 
-        static string GetFileContent(string file)
+        internal static string GetTemplate(string snippet, string[] types)
+        {
+            foreach (var type in types)
+            {
+                var result = GetTemplate(snippet, type);
+                if (!string.IsNullOrEmpty(result)) return result;
+            }
+            return string.Empty;
+        }
+        internal static string GetTemplate(string snippet, string type)
+        {
+            var marker = $"#pcc:{type}";
+            var startIndex = snippet.IndexOfOrdinal(marker);
+            if (startIndex != -1)
+            {
+                startIndex += marker.Length;
+                snippet = snippet.Remove(0, startIndex);
+            }
+            startIndex = snippet.IndexOfOrdinal("#pcc:");
+            if (startIndex != -1) return snippet.Remove(startIndex);
+            if (snippet.Contains(type)) return snippet;
+            return string.Empty;
+        }
+
+        static string GetSnippet(string file)
         {
             string content;
             using (var reader = new StreamReader(File.OpenRead(file)))
@@ -118,6 +134,19 @@ namespace PostfixCodeCompletion.Helpers
             if (string.IsNullOrEmpty(varname)) varname = Reflector.ASGenerator.GuessVarName(word, type);
             if (!string.IsNullOrEmpty(varname) && varname == word) varname = $"{varname}1";
             return new KeyValuePair<string, string>(varname, type);
+        }
+
+        internal static string ProcessTemplate(string pattern, string template, ASResult expr)
+        {
+            switch (pattern)
+            {
+                case PatternCollection:
+                    return ProcessCollectionTemplate(template, expr);
+                case PatternHash:
+                    return ProcessHashTemplate(template, expr);
+                default:
+                    return template;
+            }
         }
 
         internal static string ProcessMemberTemplate(string template, ASResult expr)

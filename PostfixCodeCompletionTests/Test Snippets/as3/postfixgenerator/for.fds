@@ -1,0 +1,8 @@
+#pcc:PCCCollection
+for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(PCCCollection).length; $(ItmUniqueVar)++) $(CSLB){
+	$(EntryPoint)
+}
+#pcc:PCCNumber
+for (var $(ItmUniqueVar):int = 0; $(ItmUniqueVar) < $(PCCNumber); $(ItmUniqueVar)++) $(CSLB){
+	$(EntryPoint)
+}

@@ -1,8 +1,8 @@
+D:\projects\fd-plugins\FlashDevelop\Bin\Debug\Plugins\fbd.j4n.jar
+D:\projects\fd-plugins\FlashDevelop\Bin\Debug\Plugins\jni4net.j-0.8.8.0.jar
+D:\projects\fd-plugins\FlashDevelop\Bin\Debug\Plugins\jni4net.n.w32.v20-0.8.8.0.dll
 D:\projects\fd-plugins\FlashDevelop\Bin\Debug\Plugins\PostfixCodeCompletion.dll
 D:\projects\fd-plugins\FlashDevelop\Bin\Debug\Plugins\PostfixCodeCompletion.pdb
 D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\obj\Debug\PostfixCodeCompletion.csprojResolveAssemblyReference.cache
 D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\obj\Debug\PostfixCodeCompletion.dll
 D:\projects\fd-plugins\External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\obj\Debug\PostfixCodeCompletion.pdb
-D:\projects\fd-plugins\FlashDevelop\Bin\Debug\Plugins\fbd.j4n.jar
-D:\projects\fd-plugins\FlashDevelop\Bin\Debug\Plugins\jni4net.j-0.8.4.0.jar
-D:\projects\fd-plugins\FlashDevelop\Bin\Debug\Plugins\jni4net.n.w32.v20-0.8.4.0.dll

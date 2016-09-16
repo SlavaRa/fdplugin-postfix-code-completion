@@ -10,21 +10,29 @@ environment:
   PLUGIN_GITHUB_RELEASES: https:\/\/github.com\/SlavaRa\/fdplugin-postfix-code-completion\/releases
   APPMAN_TEMPLATE: C:\projects\FlashDevelop\External\Plugins\PostfixCodeCompletion\appman.template
   APPMAN_CONFIG_XML: appman.txt
+  FD_PATH: C:\projects\FlashDevelop
+  FD_EXECUTABLE_DIR: FlashDevelop\Bin\Debug
+  FD_SETTINGS: C:\Users\appveyor\AppData\Local\FlashDevelop
 install:
 - set PATH=C:\Program Files (x86)\MSBuild\14.0\Bin;%PATH%
 version: $(PLUGIN_VERSION).{build}
 skip_tags: true
 init:
-- git clone -q --branch=feature/Plugins-PCC https://github.com/SlavaRa/flashdevelop-plugins.git C:\projects\FlashDevelop
+- git clone -q --branch=feature/Plugins-PCC https://github.com/SlavaRa/flashdevelop-plugins.git %FD_PATH%
 matrix:
   fast_finish: true
 build: off
 build_script:
 - cd c:\
 - mv %APPVEYOR_BUILD_FOLDER% %PLUGIN_PATH%
-- nuget restore C:\projects\FlashDevelop\FlashDevelop.sln
+- nuget restore %FD_PATH%\FlashDevelop.sln
 - nuget restore %PLUGIN_PATH%\%PLUGIN_NAME%.sln
-- msbuild /p:Configuration=Release /p:Platform=x86 /v:m C:\projects\FlashDevelop\FlashDevelop.sln
+- msbuild /p:Configuration=Release /p:Platform=x86 /v:m %FD_PATH%\FlashDevelop.sln
+- mkdir %FD_SETTINGS%
+- cp -r %FD_PATH%\%FD_EXECUTABLE_DIR%\Settings %FD_SETTINGS%\Settings
+- cp -r %FD_PATH%\%FD_EXECUTABLE_DIR%\Snippets %FD_SETTINGS%\Snippets
+- cp -T %FD_PATH%\%FD_EXECUTABLE_DIR%\SciLexer.dll %PLUGIN_PATH%\%PLUGIN_NAME%Tests\bin\Release\SciLexer.dll
+- nunit-console-x86 %PLUGIN_PATH%\%PLUGIN_NAME%Tests\bin\Release\%PLUGIN_NAME%.Tests.dll
 after_build:
 - mkdir %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins
 - mv %PLUGIN_DLL% %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins\%PLUGIN_NAME%.dll

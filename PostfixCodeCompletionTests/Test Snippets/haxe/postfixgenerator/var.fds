@@ -1,0 +1,1 @@
+var $(EntryPoint)$(Name)<<:$(Type)>> = $(PCCMember);

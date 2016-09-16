@@ -1,0 +1,3 @@
+for (var key:$(CollectionKeyType) in $(PCCCollection|PCCHash)) $(CSLB){
+	$(EntryPoint)
+}

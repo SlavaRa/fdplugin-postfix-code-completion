@@ -24,8 +24,8 @@ Available templates for **AS3**:
 * `.notnull` – checks expression to be non-null `if (expr != null)`
 * `.not` – negates value of inner boolean expression `!expr`
 * `.foreach` – iterates over collection `foreach (var x in expr)`
-* `.foin` - for Object surrounds with loop `for (var key:String in expr)`
-* `.foin` - for Dictionary surrounds with loop `for (var key:Object in expr)`
+* `.forin` - for Object surrounds with loop `for (var key:String in expr)`
+* `.forin` - for Dictionary surrounds with loop `for (var key:Object in expr)`
 * `.for` – for Array|Vector surrounds with loop `for (var i = 0; i < expr.length; i++)`
 * `.for` – for Numeric surrounds with loop `for (var i = 0; i < expr; i++)`
 * `.forr` – for Array|Vector reverse loop `for (var i = expr.length - 1; i >= 0; i--)`
