@@ -25,7 +25,7 @@ namespace PostfixCodeCompletion.Helpers
             get
             {
                 var fieldInfo = typeof(CompletionList).GetField("completionList", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-                Debug.Assert(fieldInfo != null, "fieldInfo != null");
+                Debug.Assert(fieldInfo != null, "fieldInfo is null");
                 return (ListBox) fieldInfo.GetValue(typeof(ListBox));
             }
         }
@@ -35,7 +35,7 @@ namespace PostfixCodeCompletion.Helpers
             get
             {
                 var fieldInfo = typeof(CompletionList).GetField("allItems", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-                Debug.Assert(fieldInfo != null, "fieldInfo != null");
+                Debug.Assert(fieldInfo != null, "fieldInfo is null");
                 return (List<ICompletionListItem>) fieldInfo.GetValue(typeof(List<ICompletionListItem>));
             }
         }
@@ -46,7 +46,7 @@ namespace PostfixCodeCompletion.Helpers
         internal bool HandleDotCompletion(ScintillaControl sci, bool autoHide)
         {
             var methodInfo = typeof(ASComplete).GetMethod("HandleDotCompletion", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-            Debug.Assert(methodInfo != null, "methodInfo != null");
+            Debug.Assert(methodInfo != null, "methodInfo is null");
             return (bool) methodInfo.Invoke(null, new object[] {sci, autoHide});
         }
     }
@@ -56,7 +56,7 @@ namespace PostfixCodeCompletion.Helpers
         internal string CleanType(string type)
         {
             var methodInfo = typeof(ASGenerator).GetMethod("CleanType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-            Debug.Assert(methodInfo != null, "methodInfo != null");
+            Debug.Assert(methodInfo != null, "methodInfo is null");
             return (string) methodInfo.Invoke(null, new object[] {type});
         }
 
@@ -70,7 +70,7 @@ namespace PostfixCodeCompletion.Helpers
         internal string GetShortType(string type)
         {
             var methodInfo = typeof(ASGenerator).GetMethod("GetShortType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-            Debug.Assert(methodInfo != null, "methodInfo != null");
+            Debug.Assert(methodInfo != null, "methodInfo is null");
             return (string) methodInfo.Invoke(null, new object[] {type});
         }
 
@@ -84,7 +84,7 @@ namespace PostfixCodeCompletion.Helpers
                 currentClass.InFile.Context = ASContext.GetLanguageContext(language) ?? ASContext.Context;
             }
             var methodInfo = typeof(ASGenerator).GetMethod("GetStatementReturnType", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-            Debug.Assert(methodInfo != null, "methodInfo != null");
+            Debug.Assert(methodInfo != null, "methodInfo is null");
             var returnType = methodInfo.Invoke(null, new object[] {sci, currentClass, line, positionFromLine});
             if (returnType == null) return null;
             var type = returnType.GetType();
