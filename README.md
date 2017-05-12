@@ -89,19 +89,19 @@ for (var $(ItmUniqueVar):int = $(flash.display.DisplayObjectContainer).numChildr
 ```
 развернется в код
 * для массива:
-```
+```actionscript3
 for (var i:int = 0; i < expr.length; i++) {
 	|
 }
 ```
 * для числовых:
-```
+```actionscript3
 for (var i:int = 0; i < expr; i++) {
 	|
 }
 ```
 * для `flash.display.DisplayObjectContainer` и наследников:
-```
+```actionscript3
 for (var i:int = expr.numChildren; i >= 0; i--) {
 	|
 }
