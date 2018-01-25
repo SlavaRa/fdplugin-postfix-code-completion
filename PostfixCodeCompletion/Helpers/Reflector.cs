@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using System.Windows.Forms;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
@@ -20,16 +19,6 @@ namespace PostfixCodeCompletion.Helpers
 
     internal class CompletionListReflector
     {
-        internal ListBox CompletionList
-        {
-            get
-            {
-                var fieldInfo = typeof(CompletionList).GetField("completionList", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-                Debug.Assert(fieldInfo != null, "fieldInfo is null");
-                return (ListBox) fieldInfo.GetValue(typeof(ListBox));
-            }
-        }
-
         internal List<ICompletionListItem> AllItems
         {
             get
