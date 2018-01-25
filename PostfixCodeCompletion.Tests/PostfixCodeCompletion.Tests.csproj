@@ -172,6 +172,7 @@
     <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateFor_fromVectorInitializer.as" />
     <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateString.for.as" />
     <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateString.forr.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateString.foreach.as" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

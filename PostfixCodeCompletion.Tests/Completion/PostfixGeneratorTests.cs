@@ -206,27 +206,31 @@ namespace PostfixCodeCompletion.Completion
                         yield return
                             GetTestCaseFromArray("foreach")
                                 .Returns(ReadCode("AfterGenerateForeach_fromArray"))
-                                .SetName("foreach from array.|");
+                                .SetName("array.foreach|");
                         yield return
                             GetTestCaseFromArrayInitializer("foreach")
                                 .Returns(ReadCode("AfterGenerateForeach_fromArrayInitializer"))
-                                .SetName("foreach from [].|");
+                                .SetName("[].foreach|");
                         yield return
                             GetTestCaseFromObject("foreach")
                                 .Returns(ReadCode("AfterGenerateForeach_fromObject"))
-                                .SetName("foreach from object.|");
+                                .SetName("object.foreach|");
                         yield return
                             GetTestCaseFromObjectInitializer("foreach")
                                 .Returns(ReadCode("AfterGenerateForeach_fromObjectInitializer"))
-                                .SetName("foreach from {}.|");
+                                .SetName("{}.foreach|");
                         yield return
                             GetTestCaseFromDictionary("foreach")
                                 .Returns(ReadCode("AfterGenerateForeach_fromDictionary"))
-                                .SetName("foreach from dictionary.|");
+                                .SetName("dictionary.foreach|");
                         yield return
                             GetTestCaseFromVector("foreach")
                                 .Returns(ReadCode("AfterGenerateForeach_fromVector"))
-                                .SetName("foreach from vector.|");
+                                .SetName("vector.foreach|");
+                        yield return
+                            GetTestCaseFromString("foreach")
+                                .Returns(ReadCode("AfterGenerateString.foreach"))
+                                .SetName("'string'.foreach|");
                     }
                 }
 
