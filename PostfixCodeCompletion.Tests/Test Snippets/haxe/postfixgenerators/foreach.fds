@@ -1,3 +1,8 @@
 for (it in $(PCCCollection|PCCHash)) $(CSLB){
 	$(EntryPoint)
 }
+#pcc:PCCString
+for ($(ItmUniqueVar) in 0...$(PCCString).length) $(CSLB){
+	var char = $(PCCString).charAt($(EntryPoint));
+	$(EntryPoint)
+}

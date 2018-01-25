@@ -80,12 +80,13 @@ namespace PostfixCodeCompletion.Helpers
 
         internal static string GetTemplate(string snippet, string[] types)
         {
+            var result = string.Empty;
             foreach (var type in types)
             {
-                var result = GetTemplate(snippet, type);
-                if (!string.IsNullOrEmpty(result)) return result;
+                var r = GetTemplate(snippet, type);
+                if (!string.IsNullOrEmpty(r) && r != result) result = r;
             }
-            return string.Empty;
+            return result;
         }
         internal static string GetTemplate(string snippet, string type)
         {

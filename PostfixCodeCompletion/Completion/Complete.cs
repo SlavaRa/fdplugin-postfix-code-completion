@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -54,11 +53,11 @@ namespace PostfixCodeCompletion.Completion
 
         internal static bool OnCharAdded(int value) => current?.OnCharAdded(value) ?? false;
 
-        internal static void UpdateCompletionList() => current?.UpdateCompletionList();
+        internal static void UpdateCompletionList(IList<ICompletionListItem> options) => current?.UpdateCompletionList(options);
 
-        internal static void UpdateCompletionList(ASResult expr) => current?.UpdateCompletionList(expr);
+        internal static void UpdateCompletionList(ASResult expr, IList<ICompletionListItem> options) => current?.UpdateCompletionList(expr, options);
 
-        internal static void UpdateCompletionList(MemberModel target, ASResult expr) => current?.UpdateCompletionList(target, expr);
+        internal static void UpdateCompletionList(MemberModel target, ASResult expr, IList<ICompletionListItem> options) => current?.UpdateCompletionList(target, expr, options);
     }
 
     public interface IPCCComplete
@@ -67,9 +66,9 @@ namespace PostfixCodeCompletion.Completion
         void Stop();
         bool OnShortcut(Keys keys);
         bool OnCharAdded(int value);
-        void UpdateCompletionList();
-        bool UpdateCompletionList(ASResult expr);
-        void UpdateCompletionList(MemberModel target, ASResult expr);
+        void UpdateCompletionList(IList<ICompletionListItem> options);
+        bool UpdateCompletionList(ASResult expr, IList<ICompletionListItem> options);
+        void UpdateCompletionList(MemberModel target, ASResult expr, IList<ICompletionListItem> options);
     }
 
     public class PCCComplete : IPCCComplete
@@ -86,122 +85,89 @@ namespace PostfixCodeCompletion.Completion
 
         public virtual bool OnCharAdded(int value) => false;
 
-        public virtual void UpdateCompletionList() => UpdateCompletionList(CompleteHelper.GetCurrentExpressionType());
+        public virtual void UpdateCompletionList(IList<ICompletionListItem> options) => UpdateCompletionList(CompleteHelper.GetCurrentExpressionType(), options);
 
-        public virtual bool UpdateCompletionList(ASResult expr) => false;
+        public virtual bool UpdateCompletionList(ASResult expr, IList<ICompletionListItem> options) => false;
 
-        public virtual void UpdateCompletionList(MemberModel target, ASResult expr)
+        public virtual void UpdateCompletionList(MemberModel target, ASResult expr, IList<ICompletionListItem> options)
         {
         }
     }
 
-    public class PCCASComplete : PCCComplete
+    public class PCCASComplete : PCCComplete, IEventHandler
     {
-        static int completionListItemCount;
+        public override void Start() => EventManager.AddEventHandler(this, EventType.Command);
 
-        public override void Start()
-        {
-            var completionList = Reflector.CompletionList.CompletionList;
-            completionList.VisibleChanged -= OnCompletionListVisibleChanged;
-            completionList.VisibleChanged += OnCompletionListVisibleChanged;
-        }
-
-        public override void Stop()
-        {
-            var completionList = Reflector.CompletionList.CompletionList;
-            completionList.VisibleChanged -= OnCompletionListVisibleChanged;
-            completionList.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
-        }
+        public override void Stop() => EventManager.RemoveEventHandler(this);
 
         public override bool OnShortcut(Keys keys)
         {
-            if (keys != (Keys.Control | Keys.Space)) return false;
-            var completionList = Reflector.CompletionList.CompletionList;
-            if (CompletionList.Active) return false;
+            if (CompletionList.Active || keys != (Keys.Control | Keys.Space)) return false;
             var expr = CompleteHelper.GetCurrentExpressionType();
             if (expr == null || expr.IsNull()) return false;
             var result = ASComplete.OnShortcut(keys, PluginBase.MainForm.CurrentDocument.SciControl);
-            completionList.VisibleChanged -= OnCompletionListVisibleChanged;
-            UpdateCompletionList(expr);
-            completionList.VisibleChanged += OnCompletionListVisibleChanged;
+            UpdateCompletionList(expr, new List<ICompletionListItem>());
             return result;
         }
 
         public override bool OnCharAdded(int value)
         {
+            if (CompletionList.Active) return false;
             if ((char) value != '.' || !TemplateUtils.GetHasTemplates()) return false;
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
             if (sci.PositionIsOnComment(sci.CurrentPos)) return false;
-            if (ASComplete.OnChar(sci, value, false))
-            {
-                if (Reflector.CompletionList.CompletionList.Visible) UpdateCompletionList();
-                return false;
-            }
-            if (!Reflector.ASComplete.HandleDotCompletion(sci, true) || CompletionList.Active) return false;
+            if (ASComplete.OnChar(sci, value, false) || Reflector.ASComplete.HandleDotCompletion(sci, true)) return false;
             var expr = CompleteHelper.GetCurrentExpressionType();
             if (expr == null || expr.IsNull()) return false;
-            Reflector.CompletionList.CompletionList.VisibleChanged -= OnCompletionListVisibleChanged;
-            UpdateCompletionList(expr);
-            Reflector.CompletionList.CompletionList.VisibleChanged += OnCompletionListVisibleChanged;
+            UpdateCompletionList(expr, new List<ICompletionListItem>());
             return true;
         }
 
-        public override bool UpdateCompletionList(ASResult expr)
+        public override bool UpdateCompletionList(ASResult expr, IList<ICompletionListItem> options)
         {
             if (expr == null || expr.IsNull()) return false;
             var target = CompleteHelper.GetCompletionTarget(expr);
             if (target == null) return false;
-            UpdateCompletionList(target, expr);
+            UpdateCompletionList(target, expr, options);
             return true;
         }
 
-        public override void UpdateCompletionList(MemberModel target, ASResult expr)
+        public override void UpdateCompletionList(MemberModel target, ASResult expr, IList<ICompletionListItem> options)
         {
             if (target == null || !TemplateUtils.GetHasTemplates()) return;
-            var items = CompleteHelper.GetCompletionItems(target, expr);
-            var allItems = Reflector.CompletionList.AllItems;
-            if (allItems != null)
+            var labels = new HashSet<string>();
+            foreach (var item in options)
             {
-                var labels = new HashSet<string>();
-                foreach (var item in allItems)
-                {
-                    if (item is PostfixCompletionItem) labels.Add(item.Label);
-                }
-                foreach (var item in items)
-                {
-                    if (!labels.Contains(item.Label)) allItems.Add(item);
-                }
-                items = allItems;
+                if (item is PostfixCompletionItem) labels.Add(item.Label);
             }
+            var items = CompleteHelper.GetCompletionItems(target, expr);
+            foreach (var item in items)
+            {
+                if (!labels.Contains(item.Label)) options.Add(item);
+            }
+            if (CompletionList.Active) return;
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
             var word = sci.GetWordLeft(sci.CurrentPos - 1, false);
             if (!string.IsNullOrEmpty(word))
             {
-                items = items.FindAll(it =>
+                options = options.Where(it =>
                 {
                     var score = CompletionList.SmartMatch(it.Label, word, word.Length);
                     return score > 0 && score < 6;
-                });
+                }).ToList();
             }
-            CompletionList.Show(items, false, word);
-            var list = Reflector.CompletionList.CompletionList;
-            completionListItemCount = list.Items.Count;
-            list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
-            list.SelectedValueChanged += OnCompletionListSelectedValueChanged;
+            CompletionList.Show((List<ICompletionListItem>) options, false, word);
         }
 
-        protected void OnCompletionListVisibleChanged(object o, EventArgs args)
+        public void HandleEvent(object sender, NotifyEvent e, HandlingPriority priority)
         {
-            var list = Reflector.CompletionList.CompletionList;
-            if (list.Visible) UpdateCompletionList();
-            else list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
-        }
-
-        protected void OnCompletionListSelectedValueChanged(object sender, EventArgs args)
-        {
-            var list = Reflector.CompletionList.CompletionList;
-            list.SelectedValueChanged -= OnCompletionListSelectedValueChanged;
-            if (completionListItemCount != list.Items.Count) UpdateCompletionList();
+            switch (e.Type)
+            {
+                case EventType.Command:
+                    var de = (DataEvent)e;
+                    if (de.Action == "ASCompletion.DotCompletion") UpdateCompletionList((IList<ICompletionListItem>) de.Data);
+                    break;
+            }
         }
     }
 
@@ -227,9 +193,9 @@ namespace PostfixCodeCompletion.Completion
             completionModeHandler = null;
         }
 
-        public override bool UpdateCompletionList(ASResult expr)
+        public override bool UpdateCompletionList(ASResult expr, IList<ICompletionListItem> options)
         {
-            var result = base.UpdateCompletionList(expr);
+            var result = base.UpdateCompletionList(expr, options);
             if (result) return true;
             if (expr == null || expr.IsNull() || expr.Context == null || completionModeHandler == null) return false;
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
@@ -285,22 +251,19 @@ namespace PostfixCodeCompletion.Completion
                     if (hc.AutoHide) CompletionList.Hide();
                     break;
                 case HaxeCompleteStatus.Type:
-                    var list = Reflector.CompletionList.CompletionList;
-                    list.VisibleChanged -= OnCompletionListVisibleChanged;
                     var expr = hc.Expr;
                     if (result.Type is ClassModel)
                     {
                         expr.Type = (ClassModel) result.Type;
                         expr.Member = null;
-                        UpdateCompletionList(expr.Type, expr);
+                        UpdateCompletionList(expr.Type, expr, Reflector.CompletionList.AllItems);
                     }
                     else
                     {
                         expr.Type = ASContext.Context.ResolveType(result.Type.Type, result.Type.InFile);
                         expr.Member = result.Type;
-                        UpdateCompletionList(expr.Member, expr);
+                        UpdateCompletionList(expr.Member, expr, Reflector.CompletionList.AllItems);
                     }
-                    list.VisibleChanged += OnCompletionListVisibleChanged;
                     break;
             }
         }
