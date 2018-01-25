@@ -1,0 +1,3 @@
+for (it in $(PCCCollection|PCCHash)) $(CSLB){
+	$(EntryPoint)
+}

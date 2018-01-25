@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{09FFA086-AB00-483F-8DA6-C3BE5F20A1F7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>PostfixCodeCompletion</RootNamespace>
+    <AssemblyName>PostfixCodeCompletion.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\FlashDevelop\Bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\FlashDevelop\Bin\Debug\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\..\FlashDevelop\Bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>..\..\..\..\FlashDevelop\Bin\Debug\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="NSubstitute, Version=2.0.3.0, Culture=neutral, PublicKeyToken=92dd2e9066daa5ca, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\packages\NSubstitute.2.0.3\lib\net40\NSubstitute.dll</HintPath>
+	  <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Completion\PostfixGeneratorTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestUtils\TestFile.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\const.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\constructor.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\dowhile.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\else.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\for.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\foreach.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\forin.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\forr.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\if.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\new.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\not.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\notnull.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\null.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\par.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\return.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\sel.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\var.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\while.fds" />
+    <EmbeddedResource Include="Test Snippets\as3\postfixgenerators\trace.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\code.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\dowhile.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\else.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\for.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\foreach.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\if.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\new.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\not.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\notnull.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\null.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\par.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\return.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\sel.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\var.fds" />
+    <EmbeddedResource Include="Test Snippets\haxe\postfixgenerators\while.fds" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateConst_fromString.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateConst_fromUInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateConst_fromNumber.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerateConst_fromInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateConst_fromInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateConst_fromArray.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateConst_fromObject.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerateConst_fromNewObject.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateConst_fromNewObject.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerateConst_fromNewVectorInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateConst_fromNewVectorInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateConst_fromVectorInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromUInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromNumber.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerateVar_fromNewVectorInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerateVar_fromNewObject.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerateVar_fromInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateVar_fromUInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateVar_fromString.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateVar_fromObject.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateVar_fromNumber.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateVar_fromVectorInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateVar_fromNewVectorInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateVar_fromNewObject.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateVar_fromInt.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateVar_fromArray.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateConstructor_fromString.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateNotNull_fromString.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromString.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateNull_fromString.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGeneratePar_fromString.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateSel_fromString.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateReturn_fromString.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromBoolean.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateIf_fromBoolean.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromArray.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateFor_fromArray.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateElse_fromBoolean.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateNot_fromBoolean.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForeach_fromArray.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForeach_fromObject.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromObject.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForeach_fromDictionary.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromDictionary.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromArrayInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForeach_fromArrayInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForeach_fromObjectInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromObjectInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForin_fromObjectInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForin_fromObject.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForin_fromDictionary.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForr_fromArray.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForr_fromArrayInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromType.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateNew_fromType.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateWhile_fromBoolean.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateDowhile_fromBoolean.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateTrace_fromString.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateFor_fromArrayInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateFor_fromNumber.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForr_fromNumber.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromMultilineArrayInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateReturn_fromMultilineArrayInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromVectorInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\BeforeGenerate_fromVector.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForeach_fromVector.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateFor_fromVector.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateForeach_fromVectorInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateFor_fromVectorInitializer.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateString.for.as" />
+    <EmbeddedResource Include="Test Files\generated\as3\AfterGenerateString.forr.as" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\PluginCore\PluginCore.csproj">
+      <Project>{61885F70-B4DC-4B44-852D-5D6D03F2A734}</Project>
+      <Name>PluginCore</Name>
+	  <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Tests\External\Plugins\ASCompletion.Tests\ASCompletion.Tests.csproj">
+      <Project>{ABC71D26-295C-4C6C-B6DE-320AD49EEF79}</Project>
+      <Name>ASCompletion.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ASCompletion\ASCompletion.csproj">
+      <Project>{4EBF2653-9654-4E40-880E-0046B3D6210E}</Project>
+      <Name>ASCompletion</Name>
+	  <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\PostfixCodeCompletion\PostfixCodeCompletion.csproj">
+      <Project>{e511b03b-81fd-4c39-b587-211f2a1603a1}</Project>
+      <Name>PostfixCodeCompletion</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

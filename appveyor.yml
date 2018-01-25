@@ -5,7 +5,7 @@ environment:
   PLUGIN_NAME: PostfixCodeCompletion
   PLUGIN_DESC: 
   PLUGIN_PATH: C:\projects\FlashDevelop\External\Plugins\PostfixCodeCompletion
-  PLUGIN_DLL:  C:\projects\FlashDevelop\FlashDevelop\Bin\Release\Plugins\PostfixCodeCompletion.dll
+  PLUGIN_DLL:  C:\projects\FlashDevelop\FlashDevelop\Bin\Debug\Plugins\PostfixCodeCompletion.dll
   PLUGIN_INFO: 
   PLUGIN_GITHUB_RELEASES: https:\/\/github.com\/SlavaRa\/fdplugin-postfix-code-completion\/releases
   APPMAN_TEMPLATE: C:\projects\FlashDevelop\External\Plugins\PostfixCodeCompletion\appman.template
@@ -24,15 +24,14 @@ matrix:
 build: off
 build_script:
 - cd c:\
-- mv %APPVEYOR_BUILD_FOLDER% %PLUGIN_PATH%
-- nuget restore %FD_PATH%\FlashDevelop.sln
-- nuget restore %PLUGIN_PATH%\%PLUGIN_NAME%.sln
-- msbuild /p:Configuration=Release /p:Platform=x86 /v:m %FD_PATH%\FlashDevelop.sln
+- mv %APPVEYOR_BUILD_FOLDER%/* %PLUGIN_PATH%
+- cd %FD_PATH%\
+- nuget restore
+- msbuild /p:Configuration=Debug+Tests /p:Platform=x86 /v:m
 - mkdir %FD_SETTINGS%
 - cp -r %FD_PATH%\%FD_EXECUTABLE_DIR%\Settings %FD_SETTINGS%\Settings
 - cp -r %FD_PATH%\%FD_EXECUTABLE_DIR%\Snippets %FD_SETTINGS%\Snippets
-- cp -T %FD_PATH%\%FD_EXECUTABLE_DIR%\SciLexer.dll %PLUGIN_PATH%\%PLUGIN_NAME%Tests\bin\Release\SciLexer.dll
-- nunit-console-x86 %PLUGIN_PATH%\%PLUGIN_NAME%Tests\bin\Release\%PLUGIN_NAME%.Tests.dll
+- nunit-console-x86 %FD_PATH%\%FD_EXECUTABLE_DIR%\%PLUGIN_NAME%.Tests.dll
 after_build:
 - mkdir %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins
 - mv %PLUGIN_DLL% %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins\%PLUGIN_NAME%.dll

@@ -62,7 +62,7 @@ namespace PostfixCodeCompletion.Completion
             catch(Exception ex)
             {
                 TraceManager.AddAsync(ex.Message);
-                if (!failure && FallbackNeeded != null) FallbackNeeded(false);
+                if (!failure) FallbackNeeded?.Invoke(false);
                 failure = true;
                 return string.Empty;
             }
@@ -88,7 +88,7 @@ namespace PostfixCodeCompletion.Completion
         void OnErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data == null || !Regex.IsMatch(e.Data, "Error.*--wait")) return;
-            if (!failure && FallbackNeeded != null) FallbackNeeded(true);
+            if (!failure) FallbackNeeded?.Invoke(true);
             failure = true;
         }
 

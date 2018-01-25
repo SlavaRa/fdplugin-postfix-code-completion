@@ -23,10 +23,12 @@ namespace PostfixCodeCompletion.Completion
     {
         public IPCCComplete CreateComplete()
         {
-            var project = PluginBase.CurrentProject;
-            if (project is AS3Project) return new PCCASComplete();
-            if (project is HaxeProject) return new PCCHaxeComplete();
-            return new PCCComplete();
+            switch (PluginBase.CurrentProject)
+            {
+                case AS3Project _: return new PCCASComplete();
+                case HaxeProject _: return new PCCHaxeComplete();
+                default: return new PCCComplete();
+            }
         }
     }
 
@@ -72,9 +74,13 @@ namespace PostfixCodeCompletion.Completion
 
     public class PCCComplete : IPCCComplete
     {
-        public virtual void Start() { }
+        public virtual void Start()
+        {
+        }
 
-        public virtual void Stop() { }
+        public virtual void Stop()
+        {
+        }
 
         public virtual bool OnShortcut(Keys keys) => false;
 
@@ -84,7 +90,9 @@ namespace PostfixCodeCompletion.Completion
 
         public virtual bool UpdateCompletionList(ASResult expr) => false;
 
-        public virtual void UpdateCompletionList(MemberModel target, ASResult expr) { }
+        public virtual void UpdateCompletionList(MemberModel target, ASResult expr)
+        {
+        }
     }
 
     public class PCCASComplete : PCCComplete
@@ -121,7 +129,7 @@ namespace PostfixCodeCompletion.Completion
 
         public override bool OnCharAdded(int value)
         {
-            if ((char)value != '.' || !TemplateUtils.GetHasTemplates()) return false;
+            if ((char) value != '.' || !TemplateUtils.GetHasTemplates()) return false;
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
             if (sci.PositionIsOnComment(sci.CurrentPos)) return false;
             if (ASComplete.OnChar(sci, value, false))
@@ -239,7 +247,7 @@ namespace PostfixCodeCompletion.Completion
                 completionModeHandler = null;
             }
             if (!(PluginBase.CurrentProject is HaxeProject)) return;
-            var settings = (HaXeSettings)((Context)ASContext.GetLanguageContext("haxe")).Settings;
+            var settings = (HaXeSettings) ((Context) ASContext.GetLanguageContext("haxe")).Settings;
             var sdk = settings.InstalledSDKs.FirstOrDefault(it => it.Path == PluginBase.CurrentProject.CurrentSDK);
             if (sdk == null || new SemVer(sdk.Version).IsOlderThan(new SemVer("3.2.0"))) return;
             switch (settings.CompletionMode)
@@ -282,7 +290,7 @@ namespace PostfixCodeCompletion.Completion
                     var expr = hc.Expr;
                     if (result.Type is ClassModel)
                     {
-                        expr.Type = (ClassModel)result.Type;
+                        expr.Type = (ClassModel) result.Type;
                         expr.Member = null;
                         UpdateCompletionList(expr.Type, expr);
                     }
@@ -317,6 +325,5 @@ namespace PostfixCodeCompletion.Completion
             };
             return result;
         }
-
     }
 }

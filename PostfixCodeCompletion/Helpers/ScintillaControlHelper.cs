@@ -14,53 +14,6 @@ namespace PostfixCodeCompletion.Helpers
 {
     internal static class ScintillaControlHelper
     {
-        internal static int GetExpressionStartPosition(ScintillaControl sci, int position, ASResult expr)
-        {
-            var result = 0;
-            var characters = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
-            var arrCount = 0;
-            var parCount = 0;
-            var genCount = 0;
-            var braCount = 0;
-            var dQuotes = 0;
-            var sQuotes = 0;
-            var hasDot = false;
-            for (var i = position; i > 0; i--)
-            {
-                var c = (char)sci.CharAt(i - 1);
-                if (c == ']') arrCount++;
-                else if (c == '[' && arrCount > 0) arrCount--;
-                else if (c == ')') parCount++;
-                else if (c == '(' && parCount > 0) parCount--;
-                else if (c == '>') genCount++;
-                else if (c == '<' && genCount > 0) genCount--;
-                else if (c == '}') braCount++;
-                else if (c == '{' && braCount > 0) braCount--;
-                else if (c == '\"' && sQuotes == 0)
-                {
-                    if (i <= 1 || (char) sci.CharAt(i - 2) == '\\') continue;
-                    if (dQuotes == 0) dQuotes++;
-                    else dQuotes--;
-                }
-                else if (c == '\'' && dQuotes == 0)
-                {
-                    if (i <= 1 || (char) sci.CharAt(i - 2) == '\\') continue;
-                    if (sQuotes == 0) sQuotes++;
-                    else sQuotes--;
-                }
-                else if (arrCount == 0 && parCount == 0 && genCount == 0 && braCount == 0 && dQuotes == 0 && sQuotes == 0 && !characters.Contains(c) && c != '.')
-                {
-                    result = i;
-                    break;
-                }
-                else if (!hasDot && c == '.') hasDot = true;
-            }
-
-            if ((hasDot || expr.Member == null) && sci.GetWordLeft(result - 1, true) == "new")
-                result = sci.WordStartPosition(result - 1, false);
-            return result;
-        }
-
         internal static int GetWordLeftStartPosition(ScintillaControl sci, int position)
         {
             var skipWhiteSpace = true;
@@ -166,7 +119,7 @@ namespace PostfixCodeCompletion.Helpers
                 var target = GetCompletionTarget(expr);
                 if (target?.Type == ASContext.Context.Features.stringKey)
                 {
-                    var pos = ScintillaControlHelper.GetExpressionStartPosition(sci, sci.CurrentPos, expr);
+                    var pos = ASGenerator.GetStartOfStatement(sci, sci.CurrentPos, expr);
                     haxeStringCode = sci.CharAt(pos) == '"' && sci.CharAt(pos + 1) != '\\' && sci.CharAt(pos + 2) == '"';
                     if (haxeStringCode) itemIcon = (Bitmap) ASContext.Panel.GetIcon(PluginUI.ICON_PROPERTY);
                 }
