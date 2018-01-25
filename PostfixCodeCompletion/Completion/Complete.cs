@@ -197,7 +197,7 @@ namespace PostfixCodeCompletion.Completion
         {
             var result = base.UpdateCompletionList(expr, options);
             if (result) return true;
-            if (expr == null || expr.IsNull() || expr.Context == null || completionModeHandler == null) return false;
+            if (expr == null || expr.IsNull() || expr.IsPackage || expr.Context == null || completionModeHandler == null) return false;
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
             if (sci.CharAt(expr.Context.Position) != '.') return false;
             var hc = new HaxeComplete(sci, expr, false, completionModeHandler, HaxeCompilerService.Type);
