@@ -14,6 +14,24 @@ Kind of surround templates on steroids baked with code completion.
 Download [the latest release](https://github.com/SlavaRa/fdplugin-postfix-code-completion/releases). Open the .fdz file with FlashDevelop.
 
 ## Features
+Available templates for **Haxe**:
+* `.if` – checks boolean expression to be true `if (expr)`
+* `.else` – checks boolean expression to be false `if (!expr)`
+* `.null` – checks nullable expression to be null `if (expr == null)`
+* `.notnull` – checks expression to be non-null `if (expr != null)`
+* `.not` – negates value of inner boolean expression `!expr`
+* `.foreach` – iterates over collection `for(it in expr`)
+* `.for` – for `Array`, `Vector`, `Iterator`, `Iterable` and `String` surrounds with loop `for (i in 0...expr.length)`
+* `.for` – for Numeric surrounds with loop `for (i in 0...expr)`
+* `.var` – initialize new variable with expression `var x = expr;`
+* `.new` – produces instantiation expression for type `new T()`
+* `.par` – surrounds outer expression with parentheses `(expr)`
+* `.return` – returns value from method/property `return expr;`
+* `.while` – uses expression as loop condition `while (expr)`
+* `.dowhile` – uses expression as loop condition `do{...} while(expr);`
+* `.sel` – selects expression in editor
+* `.trace` – surrounds expression with `trace(expr);`
+
 Available templates for **AS3**:
 * `.constructor` – surrounds with expression `Object(expr)['constructor']`
 * `.if` – checks boolean expression to be true `if (expr)`
@@ -30,24 +48,6 @@ Available templates for **AS3**:
 * `.forr` – for Numeric reverse loop `for (var i:int = expr; i >= 0; i--)`
 * `.var` – initialize new variable with expression `var x = expr;`
 * `.const` – initialize new variable with expression `const x = expr;`
-* `.new` – produces instantiation expression for type `new T()`
-* `.par` – surrounds outer expression with parentheses `(expr)`
-* `.return` – returns value from method/property `return expr;`
-* `.while` – uses expression as loop condition `while (expr)`
-* `.dowhile` – uses expression as loop condition `do{...} while(expr);`
-* `.sel` – selects expression in editor
-* `.trace` – surrounds expression with `trace(expr);`
-
-Available templates for **Haxe**:
-* `.if` – checks boolean expression to be true `if (expr)`
-* `.else` – checks boolean expression to be false `if (!expr)`
-* `.null` – checks nullable expression to be null `if (expr == null)`
-* `.notnull` – checks expression to be non-null `if (expr != null)`
-* `.not` – negates value of inner boolean expression `!expr`
-* `.foreach` – iterates over collection `for(it in expr`)
-* `.for` – for `Array`, `Vector`, `Iterator`, `Iterable` and `String` surrounds with loop `for (i in 0...expr.length)`
-* `.for` – for Numeric surrounds with loop `for (i in 0...expr)`
-* `.var` – initialize new variable with expression `var x = expr;`
 * `.new` – produces instantiation expression for type `new T()`
 * `.par` – surrounds outer expression with parentheses `(expr)`
 * `.return` – returns value from method/property `return expr;`
