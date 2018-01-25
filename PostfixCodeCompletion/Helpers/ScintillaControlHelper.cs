@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using ASCompletion;
 using ASCompletion.Completion;
 using ASCompletion.Context;
 using ASCompletion.Model;
@@ -110,32 +108,11 @@ namespace PostfixCodeCompletion.Helpers
         {
             var result = new List<ICompletionListItem>();
             if (templates.Count == 0) return result;
-            var sci = PluginBase.MainForm.CurrentDocument.SciControl;
-            Bitmap itemIcon = null;
-            var haxeStringCode = false;
-            var isHaxe = sci.ConfigurationLanguage.ToLower() == "haxe";
-            if (isHaxe)
-            {
-                var target = GetCompletionTarget(expr);
-                if (target?.Type == ASContext.Context.Features.stringKey)
-                {
-                    var pos = ASGenerator.GetStartOfStatement(sci, sci.CurrentPos, expr);
-                    haxeStringCode = sci.CharAt(pos) == '"' && sci.CharAt(pos + 1) != '\\' && sci.CharAt(pos + 2) == '"';
-                    if (haxeStringCode) itemIcon = (Bitmap) ASContext.Panel.GetIcon(PluginUI.ICON_PROPERTY);
-                }
-            }
             foreach (var pathToTemplate in templates)
             {
                 var fileName = Path.GetFileNameWithoutExtension(pathToTemplate.Key);
-                if (isHaxe && fileName == "code" && !haxeStringCode) continue;
                 var template = TemplateUtils.ProcessTemplate(pattern, pathToTemplate.Value, expr);
-                var item = new PostfixCompletionItem(fileName, template, expr) {Pattern = pattern};
-                if (isHaxe && fileName == "code" && itemIcon != null)
-                {
-                    item.Icon = itemIcon;
-                    itemIcon = null;
-                }
-                result.Add(item);
+                result.Add(new PostfixCompletionItem(fileName, template, expr) {Pattern = pattern});
             }
             return result;
         }
@@ -200,30 +177,30 @@ namespace PostfixCodeCompletion.Helpers
                     var type = target.Type;
                     return type == ASContext.Context.Features.objectKey || type == "Dictionary";
                 case "haxe":
-                    Func<MemberModel, bool> isIterator = member =>
+                    if (IsIterator(target)) return true;
+                    if (target is ClassModel classModel)
                     {
-                        var cleanType = Reflector.ASGenerator.CleanType(member.Type);
-                        return cleanType == "Iterator" || cleanType == "Iterable";
-                    };
-                    if (isIterator(target)) return true;
-                    if (target is ClassModel)
-                    {
-                        var classModel = target as ClassModel;
                         while (classModel != null && !classModel.IsVoid())
                         {
-                            if (classModel.Members.Items.Any(isIterator)) return true;
+                            if (classModel.Members.Items.Any(IsIterator)) return true;
                             classModel.ResolveExtends();
                             classModel = classModel.Extends;
                         }
                     }
                     return false;
+
+                    bool IsIterator(MemberModel member)
+                    {
+                        var cleanType = Reflector.ASGenerator.CleanType(member.Type);
+                        return cleanType == "Iterator" || cleanType == "Iterable";
+                    }
                 default: return false;
             }
         }
 
         internal static bool IsNumber(MemberModel target)
         {
-            var type = target is ClassModel ? ((ClassModel)target).QualifiedName : target.Type;
+            var type = target is ClassModel model ? model.QualifiedName : target.Type;
             if (type == ASContext.Context.Features.numberKey) return true;
             var language = PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower();
             var features = Settings.LanguageFeatures.First(it => it.Language == language);
@@ -248,8 +225,8 @@ namespace PostfixCodeCompletion.Helpers
         string pattern;
         public virtual string Pattern
         {
-            get { return pattern ?? TemplateUtils.PatternMember; }
-            set { pattern = value; }
+            get => pattern ?? TemplateUtils.PatternMember;
+            set => pattern = value;
         }
 
         public string Value
@@ -264,8 +241,8 @@ namespace PostfixCodeCompletion.Helpers
         Bitmap icon;
         public Bitmap Icon
         {
-            get { return icon ?? (icon = (Bitmap)PluginBase.MainForm.FindImage("341")); }
-            set { icon = value; }
+            get => icon ?? (icon = (Bitmap)PluginBase.MainForm.FindImage("341"));
+            set => icon = value;
         }
 
         string description;

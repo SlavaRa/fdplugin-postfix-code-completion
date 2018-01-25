@@ -39,8 +39,7 @@ Available templates for **AS3**:
 * `.trace` - surrounds expression with `trace(expr);`
 
 Available templates for **Haxe**:
-* `.code` – for `String` adds `code` to completion list
-* `.if` – checks boolean expression to be true  `if (expr)`
+* `.if` – checks boolean expression to be true `if (expr)`
 * `.else` – checks boolean expression to be false  `if (!expr)`
 * `.null` – checks nullable expression to be null `if (expr == null)`
 * `.notnull` – checks expression to be non-null `if (expr != null)`
