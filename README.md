@@ -22,11 +22,11 @@ Available templates for **AS3**:
 * `.notnull` – checks expression to be non-null `if (expr != null)`
 * `.not` – negates value of inner boolean expression `!expr`
 * `.foreach` – iterates over collection `foreach (var x in expr)`
-* `.forin` - for Object surrounds with loop `for (var key:String in expr)`
-* `.forin` - for Dictionary surrounds with loop `for (var key:Object in expr)`
-* `.for` – for Array|Vector surrounds with loop `for (var i:int = 0; i < expr.length; i++)`
+* `.forin` - for `Object` surrounds with loop `for (var key:String in expr)`
+* `.forin` - for `Dictionary` surrounds with loop `for (var key:Object in expr)`
+* `.for` – for `Array`, `Vector` and `String` surrounds with loop `for (var i:int = 0; i < expr.length; i++)`
 * `.for` – for Numeric surrounds with loop `for (var i:int = 0; i < expr; i++)`
-* `.forr` – for Array|Vector reverse loop `for (var i:int = expr.length - 1; i >= 0; i--)`
+* `.forr` – for `Array`, `Vector` and `String` reverse loop `for (var i:int = expr.length - 1; i >= 0; i--)`
 * `.forr` – for Numeric reverse loop `for (var i:int = expr; i >= 0; i--)`
 * `.var` – initialize new variable with expression `var x = expr;`
 * `.const` – initialize new variable with expression `const x = expr;`
@@ -39,14 +39,14 @@ Available templates for **AS3**:
 * `.trace` - surrounds expression with `trace(expr);`
 
 Available templates for **Haxe**:
-* `.code` – for String adds `code` to completion list
+* `.code` – for `String` adds `code` to completion list
 * `.if` – checks boolean expression to be true  `if (expr)`
 * `.else` – checks boolean expression to be false  `if (!expr)`
 * `.null` – checks nullable expression to be null `if (expr == null)`
 * `.notnull` – checks expression to be non-null `if (expr != null)`
 * `.not` – negates value of inner boolean expression `!expr`
 * `.foreach` – iterates over collection `for(it in expr`)
-* `.for` – for Array|Vector|Iterator|Iterable surrounds with loop `for (i in 0...expr.length)`
+* `.for` – for `Array`, `Vector`, `Iterator`, `Iterable` and `String` surrounds with loop `for (i in 0...expr.length)`
 * `.for` – for Numeric surrounds with loop `for (i in 0...expr)`
 * `.var` – initialize new variable with expression `var x = expr;`
 * `.new` – produces instantiation expression for type `new T()`
@@ -67,6 +67,7 @@ Available templates for **Haxe**:
 * `$(PCCCollection)` - коллекция элементов, расположенных в памяти непосредственно друг за другом
 * `$(PCCHash)` - ассоциативная коллекция
 * `$(PCCNumber)` - числовое
+* `$(PCCString)` - String
 * http://www.flashdevelop.org/wikidocs/index.php?title=Arguments
  
 Маркеры можно использовать вместе используя разделитель `|`, например сниппет `if($(PCCBoolean|PCCNullable)$(EntryPoint))` будет работать как для логических так и для любых единиц кода, которые могут принимать значени null.
