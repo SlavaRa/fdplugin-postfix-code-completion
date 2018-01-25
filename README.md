@@ -22,8 +22,8 @@ Available templates for **AS3**:
 * `.notnull` – checks expression to be non-null `if (expr != null)`
 * `.not` – negates value of inner boolean expression `!expr`
 * `.foreach` – iterates over collection `foreach (var x in expr)`
-* `.forin` - for `Object` surrounds with loop `for (var key:String in expr)`
-* `.forin` - for `Dictionary` surrounds with loop `for (var key:Object in expr)`
+* `.forin` – for `Object` surrounds with loop `for (var key:String in expr)`
+* `.forin` – for `Dictionary` surrounds with loop `for (var key:Object in expr)`
 * `.for` – for `Array`, `Vector` and `String` surrounds with loop `for (var i:int = 0; i < expr.length; i++)`
 * `.for` – for Numeric surrounds with loop `for (var i:int = 0; i < expr; i++)`
 * `.forr` – for `Array`, `Vector` and `String` reverse loop `for (var i:int = expr.length - 1; i >= 0; i--)`
@@ -34,13 +34,13 @@ Available templates for **AS3**:
 * `.par` – surrounds outer expression with parentheses `(expr)`
 * `.return` – returns value from method/property `return expr;`
 * `.while` – uses expression as loop condition `while (expr)`
-* `.dowhile` – uses expression as loop condition  `do{...} while(expr);`
+* `.dowhile` – uses expression as loop condition `do{...} while(expr);`
 * `.sel` – selects expression in editor
-* `.trace` - surrounds expression with `trace(expr);`
+* `.trace` – surrounds expression with `trace(expr);`
 
 Available templates for **Haxe**:
 * `.if` – checks boolean expression to be true `if (expr)`
-* `.else` – checks boolean expression to be false  `if (!expr)`
+* `.else` – checks boolean expression to be false `if (!expr)`
 * `.null` – checks nullable expression to be null `if (expr == null)`
 * `.notnull` – checks expression to be non-null `if (expr != null)`
 * `.not` – negates value of inner boolean expression `!expr`
@@ -54,19 +54,19 @@ Available templates for **Haxe**:
 * `.while` – uses expression as loop condition `while (expr)`
 * `.dowhile` – uses expression as loop condition `do{...} while(expr);`
 * `.sel` – selects expression in editor
-* `.trace` - surrounds expression with `trace(expr);`
+* `.trace` – surrounds expression with `trace(expr);`
 
 ## Как добавить сниппеты для постфиксного автокомплита самому?
 Сниппеты для постфиксного автокомплита представляют из себя улучшенный вид стандартных сниппетов и распологаются в `FlashDevelop\Snippets\Language\postfixgenerators`, также в настройках плагина можно подключить пользовательские директории.
 
 ### Синтаксис
-* `$(PCCMember)` - любая единица кода
-* `$(PCCBoolean)` - логическое
-* `$(PCCNullable)` - единица кода, которая может принимать значение null
-* `$(PCCCollection)` - коллекция элементов, расположенных в памяти непосредственно друг за другом
-* `$(PCCHash)` - ассоциативная коллекция
-* `$(PCCNumber)` - числовое
-* `$(PCCString)` - String
+* `$(PCCMember)` – любая единица кода
+* `$(PCCBoolean)` – логическое
+* `$(PCCNullable)` – единица кода, которая может принимать значение null
+* `$(PCCCollection)` – коллекция элементов, расположенных в памяти непосредственно друг за другом
+* `$(PCCHash)` – ассоциативная коллекция
+* `$(PCCNumber)` – числовое
+* `$(PCCString)` – String
 * http://www.flashdevelop.org/wikidocs/index.php?title=Arguments
  
 Маркеры можно использовать вместе используя разделитель `|`, например сниппет `if($(PCCBoolean|PCCNullable)$(EntryPoint))` будет работать как для логических так и для любых единиц кода, которые могут принимать значени null.
