@@ -3,6 +3,6 @@ for (it in $(PCCCollection|PCCHash)) $(CSLB){
 }
 #pcc:PCCString
 for ($(ItmUniqueVar) in 0...$(PCCString).length) $(CSLB){
-	var char = $(PCCString).charAt($(EntryPoint));
+	var char = $(PCCString).charAt($(ItmUniqueVar));
 	$(EntryPoint)
 }
