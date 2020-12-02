@@ -11,13 +11,11 @@ using TemplateUtils = PostfixCodeCompletion.Helpers.TemplateUtils;
 
 namespace PostfixCodeCompletion.Completion
 {
-    [TestFixture]
     internal class PostfixGeneratorTests : ASCompleteTests
     {
-        [TestFixture]
         public class GeneratorJob : PostfixGeneratorTests
         {
-            [TestFixtureSetUp]
+            [OneTimeSetUp]
             public void GenerateJobSetup() => TemplateUtils.Settings = new Settings();
 
             static string ConvertWinNewlineToUnix(string s) => s.Replace("\r\n", "\n");
@@ -47,93 +45,93 @@ namespace PostfixCodeCompletion.Completion
             [TestFixture]
             public class AS3GeneratorTests : GeneratorJob
             {
-                [TestFixtureSetUp]
+                [OneTimeSetUp]
                 public void Setup()
                 {
                     ASContext.Context.SetAs3Features();
                     sci.ConfigurationLanguage = "as3";
                 }
 
-                public TestCaseData GetTestCaseFromArray(string patternPath) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromArray(string patternPath) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromArray"),
                     new ClassModel {InFile = new FileModel(), Name = "Array", Type = "Array"},
                     ReadSnippet(patternPath),
                     TemplateUtils.PatternCollection);
 
-                public TestCaseData GetTestCaseFromArrayInitializer(string patternPath) => GetTestCaseFromArrayInitializer(patternPath, TemplateUtils.PatternCollection);
-                public TestCaseData GetTestCaseFromArrayInitializer(string patternPath, string pccpattern) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromArrayInitializer(string patternPath) => GetTestCaseFromArrayInitializer(patternPath, TemplateUtils.PatternCollection);
+                public static TestCaseData GetTestCaseFromArrayInitializer(string patternPath, string pccpattern) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromArrayInitializer"),
                     new ClassModel {InFile = new FileModel(), Name = "Array", Type = "Array"},
                     ReadSnippet(patternPath),
                     pccpattern);
 
-                public TestCaseData GetTestCaseFromMultilineArrayInitializer(string patternPath) => GetTestCaseFromMultilineArrayInitializer(patternPath, TemplateUtils.PatternCollection);
-                public TestCaseData GetTestCaseFromMultilineArrayInitializer(string patternPath, string pccpattern) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromMultilineArrayInitializer(string patternPath) => GetTestCaseFromMultilineArrayInitializer(patternPath, TemplateUtils.PatternCollection);
+                public static TestCaseData GetTestCaseFromMultilineArrayInitializer(string patternPath, string pccpattern) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromMultilineArrayInitializer"),
                     new ClassModel {InFile = new FileModel(), Name = "Array", Type = "Array"},
                     ReadSnippet(patternPath),
                     pccpattern);
 
-                public TestCaseData GetTestCaseFromVector(string patternPath) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromVector(string patternPath) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromVector"),
                     new ClassModel {InFile = new FileModel(), Name = "Vector.<Object>", Type = "Vector.<Object>"},
                     ReadSnippet(patternPath),
                     TemplateUtils.PatternCollection);
 
-                public TestCaseData GetTestCaseFromVectorInitializer(string patternPath) => GetTestCaseFromVectorInitializer(patternPath, TemplateUtils.PatternCollection);
-                public TestCaseData GetTestCaseFromVectorInitializer(string patternPath, string pccpattern) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromVectorInitializer(string patternPath) => GetTestCaseFromVectorInitializer(patternPath, TemplateUtils.PatternCollection);
+                public static TestCaseData GetTestCaseFromVectorInitializer(string patternPath, string pccpattern) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromVectorInitializer"),
                     new ClassModel {InFile = new FileModel(), Name = "Vector.<Object>", Type = "Vector.<Object>"},
                     ReadSnippet(patternPath),
                     pccpattern);
 
-                public TestCaseData GetTestCaseFromBoolean(string patternPath) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromBoolean(string patternPath) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromBoolean"),
                     new ClassModel {InFile = new FileModel(), Name = "Boolean", Type = "Boolean"},
                     ReadSnippet(patternPath),
                     TemplateUtils.PatternBool);
 
-                public TestCaseData GetTestCaseFromDictionary(string patternPath) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromDictionary(string patternPath) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromDictionary"),
                     new ClassModel {InFile = new FileModel(), Name = "Dictionary", Type = "flash.utils.Dictionary"},
                     ReadSnippet(patternPath),
                     TemplateUtils.PatternHash);
 
-                public TestCaseData GetTestCaseFromUInt(string patternPath) => GetTestCaseFromUInt(patternPath, TemplateUtils.PatternHash);
-                public TestCaseData GetTestCaseFromUInt(string patternPath, string pccpattern) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromUInt(string patternPath) => GetTestCaseFromUInt(patternPath, TemplateUtils.PatternHash);
+                public static TestCaseData GetTestCaseFromUInt(string patternPath, string pccpattern) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromUInt"),
                     new ClassModel {InFile = new FileModel(), Name = "Number", Type = "Number"},
                     ReadSnippet(patternPath),
                     pccpattern);
 
-                public TestCaseData GetTestCaseFromNumber(string patternPath) => GetTestCaseFromNumber(patternPath, TemplateUtils.PatternHash);
-                public TestCaseData GetTestCaseFromNumber(string patternPath, string pccpattern) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromNumber(string patternPath) => GetTestCaseFromNumber(patternPath, TemplateUtils.PatternHash);
+                public static TestCaseData GetTestCaseFromNumber(string patternPath, string pccpattern) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromNumber"),
                     new ClassModel {InFile = new FileModel(), Name = "Number", Type = "Number"},
                     ReadSnippet(patternPath),
                     pccpattern);
 
-                public TestCaseData GetTestCaseFromObject(string patternPath) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromObject(string patternPath) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromObject"),
                     new ClassModel {InFile = new FileModel(), Name = "Object", Type = "Object"},
                     ReadSnippet(patternPath),
                     TemplateUtils.PatternHash);
 
-                public TestCaseData GetTestCaseFromObjectInitializer(string patternPath) => GetTestCaseFromObjectInitializer(patternPath, TemplateUtils.PatternHash);
-                public TestCaseData GetTestCaseFromObjectInitializer(string patternPath, string pccpattern) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromObjectInitializer(string patternPath) => GetTestCaseFromObjectInitializer(patternPath, TemplateUtils.PatternHash);
+                public static TestCaseData GetTestCaseFromObjectInitializer(string patternPath, string pccpattern) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromObjectInitializer"),
                     new ClassModel {InFile = new FileModel(), Name = "Object", Type = "Object"},
                     ReadSnippet(patternPath),
                     pccpattern);
 
-                public TestCaseData GetTestCaseFromString(string patternPath) => GetTestCaseFromString(patternPath, TemplateUtils.PatternString);
-                public TestCaseData GetTestCaseFromString(string patternPath, string pccpattern) => new TestCaseData(
+                public static TestCaseData GetTestCaseFromString(string patternPath) => GetTestCaseFromString(patternPath, TemplateUtils.PatternString);
+                public static TestCaseData GetTestCaseFromString(string patternPath, string pccpattern) => new TestCaseData(
                     ReadCode("BeforeGenerate_fromString"),
                     new ClassModel {InFile = new FileModel(), Name = "String", Type = "String"},
                     ReadSnippet(patternPath),
                     pccpattern);
 
-                public IEnumerable<TestCaseData> Constructor
+                public static IEnumerable<TestCaseData> Constructor
                 {
                     get
                     {
@@ -144,7 +142,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> If
+                public static IEnumerable<TestCaseData> If
                 {
                     get
                     {
@@ -155,7 +153,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Else
+                public static IEnumerable<TestCaseData> Else
                 {
                     get
                     {
@@ -166,7 +164,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Null
+                public static IEnumerable<TestCaseData> Null
                 {
                     get
                     {
@@ -177,7 +175,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Notnull
+                public static IEnumerable<TestCaseData> Notnull
                 {
                     get
                     {
@@ -188,7 +186,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Not
+                public static IEnumerable<TestCaseData> Not
                 {
                     get
                     {
@@ -199,7 +197,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Foreach
+                public static IEnumerable<TestCaseData> Foreach
                 {
                     get
                     {
@@ -234,7 +232,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Forin
+                public static IEnumerable<TestCaseData> Forin
                 {
                     get
                     {
@@ -253,7 +251,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> For
+                public static IEnumerable<TestCaseData> For
                 {
                     get
                     {
@@ -285,7 +283,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Forr
+                public static IEnumerable<TestCaseData> Forr
                 {
                     get
                     {
@@ -309,7 +307,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Var
+                public static IEnumerable<TestCaseData> Var
                 {
                     get
                     {
@@ -373,7 +371,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Const
+                public static IEnumerable<TestCaseData> Const
                 {
                     get
                     {
@@ -438,7 +436,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> New
+                public static IEnumerable<TestCaseData> New
                 {
                     get
                     {
@@ -453,7 +451,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Par
+                public static IEnumerable<TestCaseData> Par
                 {
                     get
                     {
@@ -464,7 +462,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Return
+                public static IEnumerable<TestCaseData> Return
                 {
                     get
                     {
@@ -479,7 +477,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> While
+                public static IEnumerable<TestCaseData> While
                 {
                     get
                     {
@@ -490,7 +488,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> DoWhile
+                public static IEnumerable<TestCaseData> DoWhile
                 {
                     get
                     {
@@ -501,7 +499,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Sel
+                public static IEnumerable<TestCaseData> Sel
                 {
                     get
                     {
@@ -512,7 +510,7 @@ namespace PostfixCodeCompletion.Completion
                     }
                 }
 
-                public IEnumerable<TestCaseData> Trace
+                public static IEnumerable<TestCaseData> Trace
                 {
                     get
                     {
