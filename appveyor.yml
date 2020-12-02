@@ -13,8 +13,6 @@ environment:
   FD_PATH: C:\projects\FlashDevelop
   FD_EXECUTABLE_DIR: FlashDevelop\Bin\Debug
   FD_SETTINGS: C:\Users\appveyor\AppData\Local\FlashDevelop
-#install:
-#- set PATH=С:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin;%PATH%
 version: $(PLUGIN_VERSION).{build}
 skip_tags: true
 init:
@@ -31,7 +29,7 @@ build_script:
 - mkdir %FD_SETTINGS%
 - cp -r %FD_PATH%\%FD_EXECUTABLE_DIR%\Settings %FD_SETTINGS%\Settings
 - cp -r %FD_PATH%\%FD_EXECUTABLE_DIR%\Snippets %FD_SETTINGS%\Snippets
-- nunit-console-x86 %FD_PATH%\%FD_EXECUTABLE_DIR%\%PLUGIN_NAME%.Tests.dll
+- nunit3-console.exe %FD_PATH%\%FD_EXECUTABLE_DIR%\%PLUGIN_NAME%.Tests.dll
 after_build:
 - mkdir %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins
 - mv %PLUGIN_DLL% %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins\%PLUGIN_NAME%.dll
