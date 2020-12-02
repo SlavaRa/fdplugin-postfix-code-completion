@@ -203,7 +203,7 @@ namespace PostfixCodeCompletion.Helpers
         {
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
             var position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
-            var exprStartPosition = ASGenerator.GetStartOfStatement(sci, sci.CurrentPos, expr);
+            var exprStartPosition = ASGenerator.GetStartOfStatement(expr);
             var lineNum = sci.CurrentLine;
             var line = sci.GetLine(lineNum);
             var snippet = line.Substring(exprStartPosition - sci.PositionFromLine(lineNum), position - exprStartPosition);
@@ -222,7 +222,7 @@ namespace PostfixCodeCompletion.Helpers
             var position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
             sci.SetSel(position, sci.CurrentPos);
             sci.ReplaceSel(string.Empty);
-            position = ASGenerator.GetStartOfStatement(sci, sci.CurrentPos, expr);
+            position = ASGenerator.GetStartOfStatement(expr);
             sci.SetSel(position, sci.CurrentPos);
             var snippet = Regex.Replace(template, string.Format(PatternBlock, pccpattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             snippet = ProcessMemberTemplate(snippet, expr);
