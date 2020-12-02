@@ -13,8 +13,8 @@ environment:
   FD_PATH: C:\projects\FlashDevelop
   FD_EXECUTABLE_DIR: FlashDevelop\Bin\Debug
   FD_SETTINGS: C:\Users\appveyor\AppData\Local\FlashDevelop
-install:
-- set PATH=С:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin;%PATH%
+#install:
+#- set PATH=С:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin;%PATH%
 version: $(PLUGIN_VERSION).{build}
 skip_tags: true
 init:
