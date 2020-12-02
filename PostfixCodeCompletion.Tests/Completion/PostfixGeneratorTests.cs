@@ -21,6 +21,7 @@ namespace PostfixCodeCompletion.Completion
             static string ConvertWinNewlineToUnix(string s) => s.Replace("\r\n", "\n");
 
             static string ReadCode(string fileName) => ConvertWinNewlineToUnix(TestFile.ReadAllText($"PostfixCodeCompletion.Test_Files.generated.as3.{fileName}.as"));
+            
             static string ReadSnippet(string fileName) => ConvertWinNewlineToUnix(TestFile.ReadAllText($"PostfixCodeCompletion.Test_Snippets.as3.postfixgenerators.{fileName}.fds"));
 
             protected string Generate(string sourceText, ClassModel type, string template, string pccpattern)
@@ -42,7 +43,6 @@ namespace PostfixCodeCompletion.Completion
                 return ConvertWinNewlineToUnix(sci.Text);
             }
 
-            [TestFixture]
             public class AS3GeneratorTests : GeneratorJob
             {
                 [OneTimeSetUp]
