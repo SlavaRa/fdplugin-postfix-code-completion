@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Reflection;
 using ASCompletion.Completion;
 using ASCompletion.Context;
-using ASCompletion.Model;
 using PluginCore;
 using PluginCore.Controls;
 using ScintillaNet;
@@ -68,7 +67,7 @@ namespace PostfixCodeCompletion.Helpers
             var currentClass = ASContext.Context.CurrentClass;
             if (currentClass.InFile.Context == null)
             {
-                currentClass = (ClassModel) currentClass.Clone();
+                currentClass = currentClass.Clone();
                 var language = PluginBase.MainForm.SciConfig.GetLanguageFromFile(currentClass.InFile.BasePath);
                 currentClass.InFile.Context = ASContext.GetLanguageContext(language) ?? ASContext.Context;
             }
@@ -79,9 +78,9 @@ namespace PostfixCodeCompletion.Helpers
             var type = returnType.GetType();
             var result = new StatementReturnType
             {
-                Resolve = (ASResult) type.GetField("resolve").GetValue(returnType),
-                Position = (int) type.GetField("position").GetValue(returnType),
-                Word = (string) type.GetField("word").GetValue(returnType)
+                Resolve = (ASResult) type.GetField(nameof(StatementReturnType.Resolve)).GetValue(returnType),
+                Position = (int) type.GetField(nameof(StatementReturnType.Position)).GetValue(returnType),
+                Word = (string) type.GetField(nameof(StatementReturnType.Word)).GetValue(returnType)
             };
             return result;
         }
