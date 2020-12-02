@@ -29,7 +29,7 @@ build_script:
 - mkdir %FD_SETTINGS%
 - cp -r %FD_PATH%\%FD_EXECUTABLE_DIR%\Settings %FD_SETTINGS%\Settings
 - cp -r %FD_PATH%\%FD_EXECUTABLE_DIR%\Snippets %FD_SETTINGS%\Snippets
-- nunit3-console.exe %FD_PATH%\%FD_EXECUTABLE_DIR%\%PLUGIN_NAME%.Tests.dll
+- nunit3-console.exe %FD_PATH%\%FD_EXECUTABLE_DIR%\%PLUGIN_NAME%.Tests.dll --result=myresults.xml;format=AppVeyor
 after_build:
 - mkdir %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins
 - mv %PLUGIN_DLL% %APPVEYOR_BUILD_FOLDER%\$(BaseDir)\Plugins\%PLUGIN_NAME%.dll
