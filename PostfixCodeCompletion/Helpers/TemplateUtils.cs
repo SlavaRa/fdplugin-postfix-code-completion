@@ -41,30 +41,39 @@ namespace PostfixCodeCompletion.Helpers
             PatternType
         };
         
-        internal static bool GetHasTemplates() => GetHasTemplates(PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
+        internal static bool GetHasTemplates()
+            => PluginBase.MainForm.CurrentDocument?.SciControl is { } sci
+               && GetHasTemplates(sci.ConfigurationLanguage.ToLower());
 
         internal static bool GetHasTemplates(string language)
-        {
-            return GetHasTemplates(PathHelper.SnippetDir, language) || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path, language));
-        }
+            => GetHasTemplates(PathHelper.SnippetDir, language)
+               || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path, language));
 
         static bool GetHasTemplates(string snippetPath, string language)
         {
             snippetPath = GetTemplatesDir(snippetPath, language);
-            return Directory.Exists(snippetPath) && Directory.GetFiles(snippetPath, "*.fds").Length > 0;
+            return Directory.Exists(snippetPath) && Directory.EnumerateFiles(snippetPath, "*.fds").Any();
         }
 
-        static string GetTemplatesDir(string snippetPath) => GetTemplatesDir(snippetPath, PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
+        static string GetTemplatesDir(string snippetPath)
+        {
+            return PluginBase.MainForm.CurrentDocument?.SciControl is { } sci
+                ? GetTemplatesDir(snippetPath, sci.ConfigurationLanguage.ToLower())
+                : null;
+        }
 
-        static string GetTemplatesDir(string snippetPath, string language) => Path.Combine(Path.Combine(snippetPath, language), PostfixGenerators);
+        static string GetTemplatesDir(string snippetPath, string language) => Path.Combine(snippetPath, language, PostfixGenerators);
 
         internal static Dictionary<string, string> GetTemplates(string type)
         {
-            var pattern = Templates.Contains(type) ? string.Format(PatternBlock, type) : string.Format(PatternTBlock, type);
             var result = new Dictionary<string, string>();
             var paths = Settings.CustomSnippetDirectories.Select(it => GetTemplatesDir(it.Path)).ToList();
             paths.Add(GetTemplatesDir(PathHelper.SnippetDir));
             paths.RemoveAll(s => !Directory.Exists(s));
+            if (paths.Count == 0) return result;
+            var pattern = Templates.Contains(type)
+                ? string.Format(PatternBlock, type)
+                : string.Format(PatternTBlock, type);
             foreach (var path in paths)
             {
                 foreach (var file in Directory.GetFiles(path, "*.fds"))
@@ -83,11 +92,12 @@ namespace PostfixCodeCompletion.Helpers
             var result = string.Empty;
             foreach (var type in types)
             {
-                var r = GetTemplate(snippet, type);
-                if (!string.IsNullOrEmpty(r) && r != result) result = r;
+                var template = GetTemplate(snippet, type);
+                if (!string.IsNullOrEmpty(template) && template != result) result = template;
             }
             return result;
         }
+
         internal static string GetTemplate(string snippet, string type)
         {
             var marker = $"#pcc:{type}";
@@ -105,9 +115,8 @@ namespace PostfixCodeCompletion.Helpers
 
         static string GetSnippet(string file)
         {
-            string content;
             using var reader = new StreamReader(File.OpenRead(file));
-            content = reader.ReadToEnd();
+            var content = reader.ReadToEnd();
             reader.Close();
             return content;
         }

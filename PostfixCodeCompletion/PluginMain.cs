@@ -97,14 +97,12 @@ namespace PostfixCodeCompletion
         {
             EventManager.AddEventHandler(this, EventType.Command);
             EventManager.AddEventHandler(this, EventType.Keys, HandlingPriority.High);
-            UITools.Manager.OnCharAdded += OnCharAdded;
+            UITools.Manager.OnCharAdded += (_, value) => Complete.OnCharAdded(value);
         }
 
         /// <summary>
         /// Saves the plugin settings
         /// </summary>
         void SaveSettings() => ObjectSerializer.Serialize(settingFilename, Settings);
-
-        static void OnCharAdded(ScintillaControl sender, int value) => Complete.OnCharAdded(value);
     }
 }
