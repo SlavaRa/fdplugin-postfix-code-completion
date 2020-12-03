@@ -106,11 +106,9 @@ namespace PostfixCodeCompletion.Helpers
         static string GetSnippet(string file)
         {
             string content;
-            using (var reader = new StreamReader(File.OpenRead(file)))
-            {
-                content = reader.ReadToEnd();
-                reader.Close();
-            }
+            using var reader = new StreamReader(File.OpenRead(file));
+            content = reader.ReadToEnd();
+            reader.Close();
             return content;
         }
 
@@ -127,27 +125,24 @@ namespace PostfixCodeCompletion.Helpers
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
             var lineNum = sci.CurrentLine;
             var word = Reflector.ASGenerator.GetStatementReturnType(sci, sci.GetLine(lineNum), sci.PositionFromLine(lineNum))?.Word;
-            var varname = string.Empty;
-            if (member?.Name != null) varname = Reflector.ASGenerator.GuessVarName(member.Name, type);
+            var value = string.Empty;
+            if (member?.Name != null) value = Reflector.ASGenerator.GuessVarName(member.Name, type);
             if (!string.IsNullOrEmpty(word) && char.IsDigit(word[0])) word = null;
             if (!string.IsNullOrEmpty(word) && (string.IsNullOrEmpty(type) || Regex.IsMatch(type, "(<[^]]+>)"))) word = null;
             if (!string.IsNullOrEmpty(type) && type == ASContext.Context.Features.voidKey) type = null;
-            if (string.IsNullOrEmpty(varname)) varname = Reflector.ASGenerator.GuessVarName(word, type);
-            if (!string.IsNullOrEmpty(varname) && varname == word) varname = $"{varname}1";
-            return new KeyValuePair<string, string>(varname, type);
+            if (string.IsNullOrEmpty(value)) value = Reflector.ASGenerator.GuessVarName(word, type);
+            if (!string.IsNullOrEmpty(value) && value == word) value = $"{value}1";
+            return new KeyValuePair<string, string>(value, type);
         }
 
         internal static string ProcessTemplate(string pattern, string template, ASResult expr)
         {
-            switch (pattern)
+            return pattern switch
             {
-                case PatternCollection:
-                    return ProcessCollectionTemplate(template, expr);
-                case PatternHash:
-                    return ProcessHashTemplate(template, expr);
-                default:
-                    return template;
-            }
+                PatternCollection => ProcessCollectionTemplate(template, expr),
+                PatternHash => ProcessHashTemplate(template, expr),
+                _ => template
+            };
         }
 
         internal static string ProcessMemberTemplate(string template, ASResult expr)

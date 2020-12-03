@@ -241,12 +241,12 @@ namespace PostfixCodeCompletion.Helpers
         Bitmap icon;
         public Bitmap Icon
         {
-            get => icon ?? (icon = (Bitmap)PluginBase.MainForm.FindImage("341"));
+            get => icon ??= (Bitmap)PluginBase.MainForm.FindImage("341");
             set => icon = value;
         }
 
         string description;
-        public string Description => description ?? (description = TemplateUtils.GetDescription(expr, template, Pattern));
+        public string Description => description ??= TemplateUtils.GetDescription(expr, template, Pattern);
 
         public new string ToString() => Description;
 

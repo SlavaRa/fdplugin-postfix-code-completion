@@ -17,8 +17,8 @@ namespace PostfixCodeCompletion
         [Editor(typeof(ArrayEditor), typeof(UITypeEditor))]
         public Folder[] CustomSnippetDirectories
         {
-            get { return customSnippetDirectories ?? (customSnippetDirectories = new Folder[] {}); }
-            set { customSnippetDirectories = value; }
+            get => customSnippetDirectories ??= Array.Empty<Folder>();
+            set => customSnippetDirectories = value;
         }
 
         bool disableTypeDeclaration = true;
@@ -26,8 +26,8 @@ namespace PostfixCodeCompletion
         [Category("Haxe"), DisplayName("Disable type declaration for variables"), DefaultValue(true)]
         public bool DisableTypeDeclaration
         {
-            get { return disableTypeDeclaration; }
-            set { disableTypeDeclaration = value; }
+            get => disableTypeDeclaration;
+            set => disableTypeDeclaration = value;
         }
 
         [Category("Advanced"), DisplayName("Features of languages")]
@@ -46,6 +46,6 @@ namespace PostfixCodeCompletion
         public string Language { get; set; } = string.Empty;
 
         [DisplayName("Numeric types")]
-        public string[] Numeric { get; set; } = {};
+        public string[] Numeric { get; set; } = Array.Empty<string>();
     }
 }

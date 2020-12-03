@@ -153,12 +153,11 @@ namespace PostfixCodeCompletion.Completion
 
         int GetDisplayPosition()
         {
-            switch (CompilerService)
+            return CompilerService switch
             {
-                case HaxeCompilerService.Type:
-                    return Expr.Context.Position + 1;
-            }
-            return Expr.Context.Position;
+                HaxeCompilerService.Type => Expr.Context.Position + 1,
+                _ => Expr.Context.Position
+            };
         }
 
         HaxeCompleteStatus ParseLines(string lines)
@@ -168,15 +167,11 @@ namespace PostfixCodeCompletion.Completion
                 Errors = lines.Trim();
                 return HaxeCompleteStatus.Error;
             }
-            try 
+            try
             {
-                using (TextReader stream = new StringReader(lines))
-                {
-                    using (var reader = new XmlTextReader(stream))
-                    {
-                        return ProcessResponse(reader);
-                    }
-                }
+                using var stream = new StringReader(lines);
+                using var reader = new XmlTextReader(stream);
+                return ProcessResponse(reader);
             }
             catch (Exception ex)
             {

@@ -22,12 +22,12 @@ namespace PostfixCodeCompletion.Completion
     {
         public IPCCComplete CreateComplete()
         {
-            switch (PluginBase.CurrentProject)
+            return PluginBase.CurrentProject switch
             {
-                case AS3Project _: return new PCCASComplete();
-                case HaxeProject _: return new PCCHaxeComplete();
-                default: return new PCCComplete();
-            }
+                AS3Project _ => new PCCASComplete(),
+                HaxeProject _ => new PCCHaxeComplete(),
+                _ => new PCCComplete()
+            };
         }
     }
 
@@ -215,7 +215,7 @@ namespace PostfixCodeCompletion.Completion
             if (!(PluginBase.CurrentProject is HaxeProject)) return;
             var settings = (HaXeSettings) ((Context) ASContext.GetLanguageContext("haxe")).Settings;
             var sdk = settings.InstalledSDKs.FirstOrDefault(it => it.Path == PluginBase.CurrentProject.CurrentSDK);
-            if (sdk == null || new SemVer(sdk.Version) > "3.2.0") return;
+            if (sdk == null || new SemVer(sdk.Version) < "3.2.0") return;
             switch (settings.CompletionMode)
             {
                 case HaxeCompletionModeEnum.CompletionServer:
