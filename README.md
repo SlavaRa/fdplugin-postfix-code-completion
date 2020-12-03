@@ -7,7 +7,7 @@ Kind of surround templates on steroids baked with code completion.
 
 ## Minimum Requirements
 * [Last release FlashDevelop](http://www.flashdevelop.org/community/viewforum.php?f=11).
-* [Haxe 3.2.1](http://haxe.org/download/) or higher - for Haxe projects
+* [Haxe 3.2.1](http://haxe.org/download/) or higher - for Haxe projects.
 
 ### Installation
 
@@ -64,9 +64,9 @@ Available templates for **AS3**:
 * `$(PCCBoolean)` – логическое
 * `$(PCCNullable)` – единица кода, которая может принимать значение null
 * `$(PCCCollection)` – коллекция элементов, расположенных в памяти непосредственно друг за другом
-* `$(PCCHash)` – ассоциативная коллекция
-* `$(PCCNumber)` – числовое
-* `$(PCCString)` – String
+* `$(PCCHash)` – `Object`|`Dictionary`|etc for as3, `Map`|etc - haxe
+* `$(PCCNumber)` – Numeric
+* `$(PCCString)` – `String`
 * http://www.flashdevelop.org/wikidocs/index.php?title=Arguments
  
 Маркеры можно использовать вместе используя разделитель `|`, например сниппет `if($(PCCBoolean|PCCNullable)$(EntryPoint))` будет работать как для логических так и для любых единиц кода, которые могут принимать значени null.
