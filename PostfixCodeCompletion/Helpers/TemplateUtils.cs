@@ -41,30 +41,39 @@ namespace PostfixCodeCompletion.Helpers
             PatternType
         };
         
-        internal static bool GetHasTemplates() => GetHasTemplates(PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
+        internal static bool GetHasTemplates()
+            => PluginBase.MainForm.CurrentDocument?.SciControl is { } sci
+               && GetHasTemplates(sci.ConfigurationLanguage.ToLower());
 
         internal static bool GetHasTemplates(string language)
-        {
-            return GetHasTemplates(PathHelper.SnippetDir, language) || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path, language));
-        }
+            => GetHasTemplates(PathHelper.SnippetDir, language)
+               || Settings.CustomSnippetDirectories.Any(it => GetHasTemplates(it.Path, language));
 
         static bool GetHasTemplates(string snippetPath, string language)
         {
             snippetPath = GetTemplatesDir(snippetPath, language);
-            return Directory.Exists(snippetPath) && Directory.GetFiles(snippetPath, "*.fds").Length > 0;
+            return Directory.Exists(snippetPath) && Directory.EnumerateFiles(snippetPath, "*.fds").Any();
         }
 
-        static string GetTemplatesDir(string snippetPath) => GetTemplatesDir(snippetPath, PluginBase.MainForm.CurrentDocument.SciControl.ConfigurationLanguage.ToLower());
+        static string GetTemplatesDir(string snippetPath)
+        {
+            return PluginBase.MainForm.CurrentDocument?.SciControl is { } sci
+                ? GetTemplatesDir(snippetPath, sci.ConfigurationLanguage.ToLower())
+                : null;
+        }
 
-        static string GetTemplatesDir(string snippetPath, string language) => Path.Combine(Path.Combine(snippetPath, language), PostfixGenerators);
+        static string GetTemplatesDir(string snippetPath, string language) => Path.Combine(snippetPath, language, PostfixGenerators);
 
         internal static Dictionary<string, string> GetTemplates(string type)
         {
-            var pattern = Templates.Contains(type) ? string.Format(PatternBlock, type) : string.Format(PatternTBlock, type);
             var result = new Dictionary<string, string>();
             var paths = Settings.CustomSnippetDirectories.Select(it => GetTemplatesDir(it.Path)).ToList();
             paths.Add(GetTemplatesDir(PathHelper.SnippetDir));
             paths.RemoveAll(s => !Directory.Exists(s));
+            if (paths.Count == 0) return result;
+            var pattern = Templates.Contains(type)
+                ? string.Format(PatternBlock, type)
+                : string.Format(PatternTBlock, type);
             foreach (var path in paths)
             {
                 foreach (var file in Directory.GetFiles(path, "*.fds"))
@@ -83,11 +92,12 @@ namespace PostfixCodeCompletion.Helpers
             var result = string.Empty;
             foreach (var type in types)
             {
-                var r = GetTemplate(snippet, type);
-                if (!string.IsNullOrEmpty(r) && r != result) result = r;
+                var template = GetTemplate(snippet, type);
+                if (!string.IsNullOrEmpty(template) && template != result) result = template;
             }
             return result;
         }
+
         internal static string GetTemplate(string snippet, string type)
         {
             var marker = $"#pcc:{type}";
@@ -105,12 +115,9 @@ namespace PostfixCodeCompletion.Helpers
 
         static string GetSnippet(string file)
         {
-            string content;
-            using (var reader = new StreamReader(File.OpenRead(file)))
-            {
-                content = reader.ReadToEnd();
-                reader.Close();
-            }
+            using var reader = new StreamReader(File.OpenRead(file));
+            var content = reader.ReadToEnd();
+            reader.Close();
             return content;
         }
 
@@ -127,27 +134,24 @@ namespace PostfixCodeCompletion.Helpers
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
             var lineNum = sci.CurrentLine;
             var word = Reflector.ASGenerator.GetStatementReturnType(sci, sci.GetLine(lineNum), sci.PositionFromLine(lineNum))?.Word;
-            var varname = string.Empty;
-            if (member?.Name != null) varname = Reflector.ASGenerator.GuessVarName(member.Name, type);
+            var value = string.Empty;
+            if (member?.Name != null) value = Reflector.ASGenerator.GuessVarName(member.Name, type);
             if (!string.IsNullOrEmpty(word) && char.IsDigit(word[0])) word = null;
             if (!string.IsNullOrEmpty(word) && (string.IsNullOrEmpty(type) || Regex.IsMatch(type, "(<[^]]+>)"))) word = null;
             if (!string.IsNullOrEmpty(type) && type == ASContext.Context.Features.voidKey) type = null;
-            if (string.IsNullOrEmpty(varname)) varname = Reflector.ASGenerator.GuessVarName(word, type);
-            if (!string.IsNullOrEmpty(varname) && varname == word) varname = $"{varname}1";
-            return new KeyValuePair<string, string>(varname, type);
+            if (string.IsNullOrEmpty(value)) value = Reflector.ASGenerator.GuessVarName(word, type);
+            if (!string.IsNullOrEmpty(value) && value == word) value = $"{value}1";
+            return new KeyValuePair<string, string>(value, type);
         }
 
         internal static string ProcessTemplate(string pattern, string template, ASResult expr)
         {
-            switch (pattern)
+            return pattern switch
             {
-                case PatternCollection:
-                    return ProcessCollectionTemplate(template, expr);
-                case PatternHash:
-                    return ProcessHashTemplate(template, expr);
-                default:
-                    return template;
-            }
+                PatternCollection => ProcessCollectionTemplate(template, expr),
+                PatternHash => ProcessHashTemplate(template, expr),
+                _ => template
+            };
         }
 
         internal static string ProcessMemberTemplate(string template, ASResult expr)
@@ -203,7 +207,7 @@ namespace PostfixCodeCompletion.Helpers
         {
             var sci = PluginBase.MainForm.CurrentDocument.SciControl;
             var position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
-            var exprStartPosition = ASGenerator.GetStartOfStatement(sci, sci.CurrentPos, expr);
+            var exprStartPosition = ASGenerator.GetStartOfStatement(expr);
             var lineNum = sci.CurrentLine;
             var line = sci.GetLine(lineNum);
             var snippet = line.Substring(exprStartPosition - sci.PositionFromLine(lineNum), position - exprStartPosition);
@@ -222,7 +226,7 @@ namespace PostfixCodeCompletion.Helpers
             var position = ScintillaControlHelper.GetDotLeftStartPosition(sci, sci.CurrentPos - 1);
             sci.SetSel(position, sci.CurrentPos);
             sci.ReplaceSel(string.Empty);
-            position = ASGenerator.GetStartOfStatement(sci, sci.CurrentPos, expr);
+            position = ASGenerator.GetStartOfStatement(expr);
             sci.SetSel(position, sci.CurrentPos);
             var snippet = Regex.Replace(template, string.Format(PatternBlock, pccpattern), sci.SelText, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             snippet = ProcessMemberTemplate(snippet, expr);

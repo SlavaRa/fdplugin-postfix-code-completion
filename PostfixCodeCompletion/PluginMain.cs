@@ -19,7 +19,7 @@ namespace PostfixCodeCompletion
 
         public int Api => 1;
 
-        public string Name => "PostfixCodeCompletion";
+        public string Name => nameof(PostfixCodeCompletion);
 
         public string Guid => "21d9ab3e-93e4-4460-9298-c62f87eed7ba";
 
@@ -97,14 +97,12 @@ namespace PostfixCodeCompletion
         {
             EventManager.AddEventHandler(this, EventType.Command);
             EventManager.AddEventHandler(this, EventType.Keys, HandlingPriority.High);
-            UITools.Manager.OnCharAdded += OnCharAdded;
+            UITools.Manager.OnCharAdded += (_, value) => Complete.OnCharAdded(value);
         }
 
         /// <summary>
         /// Saves the plugin settings
         /// </summary>
         void SaveSettings() => ObjectSerializer.Serialize(settingFilename, Settings);
-
-        static void OnCharAdded(ScintillaControl sender, int value) => Complete.OnCharAdded(value);
     }
 }
